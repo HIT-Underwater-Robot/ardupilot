@@ -63,13 +63,11 @@
 }
 
 /*
-  A task scheduler for APM main loops
+  ArduPilot 主循环任务调度器。
 
-  Sketches should call scheduler.init() on startup, then call
-  scheduler.tick() at regular intervals (typically every 10ms).
-
-  To run tasks use scheduler.run(), passing the amount of time that
-  the scheduler is allowed to use before it must return
+  AP_Vehicle::setup() 调用 init() 注册车辆任务表；AP_Vehicle::loop()
+  每轮只调用 scheduler.loop()。loop() 以 IMU 样本作为节拍，计算本轮
+  剩余时间，再按频率、优先级和时间预算选择任务执行。
  */
 
 class AP_Scheduler
@@ -77,7 +75,7 @@ class AP_Scheduler
 public:
     AP_Scheduler();
 
-    /* Do not allow copies */
+    // 全局只使用一个调度器实例，禁止复制。
     CLASS_NO_COPY(AP_Scheduler);
 
     static AP_Scheduler *get_singleton();
@@ -90,7 +88,7 @@ public:
         const char *name;
         float rate_hz;
         uint16_t max_time_micros;
-        uint8_t priority; // task priority
+        uint8_t priority; // 数字越小优先级越高
     };
 
     enum class Options : uint8_t {
@@ -104,11 +102,10 @@ public:
         MAX_FAST_TASK_PRIORITIES = 3
     };
 
-    // initialise scheduler
+    // 保存车辆任务表、合并公共任务，并建立循环周期和性能统计。
     void init(const Task *tasks, uint8_t num_tasks, uint32_t log_performance_bit);
 
-    // called by vehicle's main loop - which should be the only thing
-    // that function does
+    // 车辆主循环的唯一调度入口。
     void loop();
 
     // call to update any logging the scheduler might do; call at 1Hz
@@ -117,16 +114,14 @@ public:
     // write out PERF message to logger
     void Log_Write_Performance();
 
-    // call when one tick has passed
+    // 通知调度器主循环节拍前进一次。
     void tick(void);
 
     // return current tick counter
     uint16_t ticks() const { return _tick_counter; }
     uint32_t ticks32() const { return _tick_counter32; }
 
-    // run the tasks. Call this once per 'tick'.
-    // time_available is the amount of time available to run
-    // tasks in microseconds
+    // 在本轮剩余的 time_available 微秒内运行到期任务。
     void run(uint32_t time_available);
 
     // return the number of microseconds available for the current task

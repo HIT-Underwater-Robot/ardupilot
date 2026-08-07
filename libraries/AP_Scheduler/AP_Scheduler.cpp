@@ -100,13 +100,13 @@ AP_Scheduler *AP_Scheduler::get_singleton()
     return _singleton;
 }
 
-// initialise the scheduler
+// 初始化循环周期，保存车辆任务，并合并 AP_Vehicle 公共任务。
 void AP_Scheduler::init(const AP_Scheduler::Task *tasks, uint8_t num_tasks, uint32_t log_performance_bit)
 {
-    // grab the semaphore before we start anything
+    // 初始化期间持有信号量，避免其他执行流观察到未完成的任务表。
     _rsem.take_blocking();
 
-    // only allow 50 to 2000 Hz
+    // 主循环频率限制在 50～2000 Hz。
     if (_loop_rate_hz < 50) {
         _loop_rate_hz.set(50);
     } else if (_loop_rate_hz > 2000) {
@@ -114,8 +114,7 @@ void AP_Scheduler::init(const AP_Scheduler::Task *tasks, uint8_t num_tasks, uint
     }
     _last_loop_time_s = 1.0 / _loop_rate_hz;
 
-    // These variables are initialized only here in scheduler::init()
-    // These are also defensively initialized in the getter functions to catch initialization order issues.
+    // 这些派生量正常情况下只在 init() 初始化；getter 中的兜底用于捕获初始化顺序问题。
     _loop_period_us = 1000000UL / _loop_rate_hz;
     _loop_period_s = 1.0f / _loop_rate_hz;
     _active_loop_rate_hz = _loop_rate_hz;
@@ -347,7 +346,7 @@ float AP_Scheduler::load_average()
 
 void AP_Scheduler::loop()
 {
-    // wait for an INS sample
+    // 以新的惯性传感器样本作为本轮开始，控制环因此与 IMU 数据同步。
     hal.util->persistent_data.scheduler_task = -3;
     _rsem.give();
     AP::ins().wait_for_sample();
@@ -375,27 +374,24 @@ void AP_Scheduler::loop()
     }
 #endif
 
-    // tell the scheduler one tick has passed
+    // 主循环节拍加一，任务是否到期由节拍和目标频率共同决定。
     tick();
 
-    // run all the tasks that are due to run. Note that we only
-    // have to call this once per loop, as the tasks are scheduled
-    // in multiples of the main loop tick. So if they don't run on
-    // the first call to the scheduler they won't run on a later
-    // call until scheduler.tick() is called again
+    // 每个节拍只调用一次 run()。任务频率都是主循环节拍的调度结果，未在
+    // 当前 run() 执行的任务，要等下一次 tick() 后才会再次获得机会。
     const uint32_t loop_us = get_loop_period_us();
     uint32_t now = AP_HAL::micros();
     uint32_t time_available = 0;
     const uint32_t loop_tick_us = now - sample_time_us;
     if (loop_tick_us < loop_us) {
-        // get remaining time available for this loop
+        // 扣除等待样本后的已用时间，得到本轮可分配给普通任务的预算。
         time_available = loop_us - loop_tick_us;
     }
 
-    // add in extra loop time determined by not achieving scheduler tasks
+    // 若前几轮有任务未获得执行机会，可加入有限的补偿预算。
     time_available += extra_loop_us;
 
-    // run the tasks
+    // 按优先级运行到期且能放入预算的任务。
     run(time_available);
 
 #if CONFIG_HAL_BOARD == HAL_BOARD_SITL
