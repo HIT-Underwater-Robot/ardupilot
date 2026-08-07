@@ -95,6 +95,8 @@
 
 class AP_DDS_Client;
 
+// 所有车辆共用的生命周期基类。HAL 只认识 Callbacks 接口，具体车辆通过
+// init_ardupilot() 和 get_scheduler_tasks() 注入自己的初始化与周期任务。
 class AP_Vehicle : public AP_HAL::HAL::Callbacks {
 
 public:
@@ -107,21 +109,16 @@ public:
         _singleton = this;
     }
 
-    /* Do not allow copies */
+    // 飞控系统只能有一个车辆对象，禁止复制。
     CLASS_NO_COPY(AP_Vehicle);
 
     static AP_Vehicle *get_singleton();
 
-    // setup() is called once during vehicle startup to initialise the
-    // vehicle object and the objects it contains.  The
-    // AP_HAL_MAIN_CALLBACKS pragma creates a main(...) function
-    // referencing an object containing setup() and loop() functions.
-    // A vehicle is not expected to override setup(), but
-    // subclass-specific initialisation can be done in init_ardupilot
-    // which is called from setup().
+    // HAL 启动后只调用一次。公共初始化固定在 AP_Vehicle 中，具体车辆通过
+    // init_ardupilot() 扩展，因此派生车辆不能覆盖 setup()。
     void setup(void) override final;
 
-    // HAL::Callbacks implementation.
+    // HAL 每轮调用一次；函数内部驱动 AP_Scheduler，同样不允许车辆覆盖。
     void loop() override final;
 
     // set_mode *must* set control_mode_reason
@@ -142,8 +139,7 @@ public:
 
 #if AP_SCHEDULER_ENABLED
     void get_common_scheduler_tasks(const AP_Scheduler::Task*& tasks, uint8_t& num_tasks);
-    // implementations *MUST* fill in all passed-in fields or we get
-    // Valgrind errors
+    // 车辆实现必须填写全部输出字段；Sub 在 Sub.cpp 中返回 scheduler_tasks[]。
     virtual void get_scheduler_tasks(const AP_Scheduler::Task *&tasks, uint8_t &task_count, uint32_t &log_bit) = 0;
 #endif
 

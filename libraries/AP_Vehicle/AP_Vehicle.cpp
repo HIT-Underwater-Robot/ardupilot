@@ -309,15 +309,17 @@ extern AP_Vehicle& vehicle;
 #endif
 
 /*
-  setup is called when the sketch starts
+  HAL 启动阶段调用一次。主要顺序是：参数 -> 调度器 -> 串口/GCS
+  -> 板级和公共子系统 -> 具体车辆 init_ardupilot()。
  */
 void AP_Vehicle::setup()
 {
-    // load the default values of variables listed in var_info[]
+    // 阶段 A：建立参数默认值，尽早打开控制台，随后加载持久化参数。
+    // 装载 var_info[] 中登记的参数默认值。
     AP_Param::setup_sketch_defaults();
 
 #if AP_SERIALMANAGER_ENABLED
-    // initialise serial port
+    // 先启动控制台端口，使后续初始化过程能够输出诊断信息。
     serial_manager.init_console();
 #endif
 
@@ -330,8 +332,7 @@ void AP_Vehicle::setup()
     check_firmware_print();
 #endif
 
-    // validate the static parameter table, then load persistent
-    // values from storage:
+    // 校验静态参数表，再从持久化存储加载用户参数。
     AP_Param::check_var_info();
     load_parameters();
 
@@ -344,28 +345,24 @@ void AP_Vehicle::setup()
 #endif
 
 #if AP_SCHEDULER_ENABLED
-    // initialise the main loop scheduler
+    // 阶段 B：注册车辆任务表。此处只建立调度数据，还没有开始周期执行。
+    // 取得 Sub 的任务表，并与 AP_Vehicle 公共任务一起交给调度器。
     const AP_Scheduler::Task *tasks;
     uint8_t task_count;
     uint32_t log_bit;
     get_scheduler_tasks(tasks, task_count, log_bit);
     AP::scheduler().init(tasks, task_count, log_bit);
 
-    // time per loop - this gets updated in the main loop() based on
-    // actual loop rate
+    // 初始循环周期；进入 loop() 后会根据实际周期持续更新。
     G_Dt = scheduler.get_loop_period_s();
 #endif
 
-    // this is here for Plane; its failsafe_check method requires the
-    // RC channels to be set as early as possible for maximum
-    // survivability.
+    // 公共车辆框架要求尽早建立控制通道；Plane 的失控保护尤其依赖该顺序。
     set_control_channels();
 
 #if HAL_GCS_ENABLED
-    // initialise serial manager as early as sensible to get
-    // diagnostic output during boot process.  We have to initialise
-    // the GCS singleton first as it sets the global mavlink system ID
-    // which may get used very early on.
+    // 阶段 C：建立 GCS 和完整串口映射。GCS 会设置全局 MAVLink system ID，
+    // 必须早于可能发送启动消息的其他模块。
     gcs().init();
 #endif
 
@@ -375,7 +372,7 @@ void AP_Vehicle::setup()
         serial_manager.set_protocol_and_baud(HAL_UART_IOMCU_IDX, AP_SerialManager::SerialProtocol_IOMCU, 0);
     }
 #endif
-    // initialise serial ports
+    // 根据 SERIALx 参数为各物理端口选择协议和波特率。
     serial_manager.init();
 #endif
 #if HAL_GCS_ENABLED
@@ -384,8 +381,8 @@ void AP_Vehicle::setup()
 
 #if AP_SCRIPTING_ENABLED
 #if AP_SCRIPTING_SERIALDEVICE_ENABLED
-    // must be done now so ports are registered and drivers get set up properly
-    // (in particular mavlink which checks during init_ardupilot())
+    // 先登记脚本虚拟串口，保证 init_ardupilot() 检查 MAVLink 等协议时
+    // 能看到完整端口集合。
     scripting.init_serialdevice_ports();
 #endif
 #endif
@@ -395,13 +392,13 @@ void AP_Vehicle::setup()
 #endif
 
 #if AP_SCHEDULER_ENABLED
-    // Register scheduler_delay_cb, which will run anytime you have
-    // more than 5ms remaining in your call to hal.scheduler->delay
+    // 初始化期间若一次 HAL delay 剩余超过 5 ms，允许回调处理必要后台工作。
     hal.scheduler->register_delay_callback(scheduler_delay_callback, 5);
 #endif
 
 #if AP_EXTERNAL_AHRS_ENABLED
-    // call externalAHRS init before init_ardupilot to allow for external sensors
+    // 阶段 D：车辆初始化前先建立外部 AHRS、板卡、CAN、MSP 和日志等公共能力。
+    // ExternalAHRS 必须先启动，车辆初始化时才可能发现它提供的传感器。
     externalAHRS.init();
 #endif
 
@@ -410,13 +407,15 @@ void AP_Vehicle::setup()
 #endif
 
 #if AP_STATS_ENABLED
-    // initialise stats module
+    // 运行时间统计模块。
     stats.init();
 #endif
 
+    // 运行时板卡参数和驱动配置；不要与 Waf configure 混淆。
     BoardConfig.init();
 
 #if HAL_CANMANAGER_ENABLED
+    // 根据参数启动 CAN 驱动和已启用协议。
     can_mgr.init();
 #endif
 
@@ -426,23 +425,25 @@ void AP_Vehicle::setup()
 #endif
 
 #if HAL_LOGGING_ENABLED
+    // Logger 需要车辆提供日志位掩码和消息结构。
     logger.init(get_log_bitmask(), get_log_structures(), get_num_log_structures());
 #endif
 
-    // init cargo gripper
+    // 以下是车辆可选的公共功能对象。
 #if AP_GRIPPER_ENABLED
     AP::gripper().init();
 #endif
 
-    // init beacons used for non-gps position estimation
+    // Beacon 可为无 GPS 场景提供位置观测。
 #if AP_BEACON_ENABLED
     beacon.init();
 #endif  // AP_BEACON_ENABLED
 
-    // init_ardupilot is where the vehicle does most of its initialisation.
+    // 阶段 E：通过纯虚函数进入具体车辆；当前固件会进入 Sub::init_ardupilot()。
     init_ardupilot();
 
 #if AP_SCRIPTING_ENABLED
+    // 阶段 F：车辆专属初始化返回后，再启动依赖完整车辆状态的公共功能。
     scripting.init();
 #endif // AP_SCRIPTING_ENABLED
 
@@ -460,6 +461,7 @@ void AP_Vehicle::setup()
 
 
 #if AP_SRV_CHANNELS_ENABLED
+    // 初始化通用执行器通道映射；具体推进器对象已在 Sub 初始化中准备。
     AP::srv().init();
 #endif
 
@@ -475,7 +477,7 @@ void AP_Vehicle::setup()
     hott_telem.init();
 #endif
 #if HAL_VISUALODOM_ENABLED
-    // init library used for visual position estimation
+    // 外部视觉/里程计前端需要在车辆基础传感器建立后启动。
     visual_odom.init();
 #endif
 
@@ -507,6 +509,7 @@ void AP_Vehicle::setup()
 #endif
 
 #if AP_TEMPERATURE_SENSOR_ENABLED
+    // 公共温度传感器前端；Sub 已提前设置其默认外部总线。
     temperature_sensor.init();
 #endif
 
@@ -546,13 +549,14 @@ void AP_Vehicle::setup()
 #endif
 
 #if AP_ARMING_ENABLED
+    // 所有相关传感器和安全模块建立后，最后初始化解锁检查。
     AP::arming().init();
 #endif
 
-    // invalidate count in case an enable parameter changed during
-    // initialisation
+    // 初始化可能改变 enable 参数，使参数总数变化，因此废弃旧计数缓存。
     AP_Param::invalidate_count();
 
+    // 表示 AP_Vehicle 公共 setup 已到达可用状态，不等同于车辆已解锁。
     GCS_SEND_TEXT(MAV_SEVERITY_INFO, "ArduPilot Ready");
 
 #if AP_DDS_ENABLED
@@ -569,6 +573,7 @@ void AP_Vehicle::setup()
 void AP_Vehicle::loop()
 {
 #if AP_SCHEDULER_ENABLED
+    // scheduler.loop() 等待新 IMU 样本，并在本轮时间预算内运行到期任务。
     scheduler.loop();
     G_Dt = scheduler.get_loop_period_s();
 #else
@@ -578,11 +583,8 @@ void AP_Vehicle::loop()
 
     if (!done_safety_init) {
         /*
-          disable safety if requested. This is delayed till after the
-          first loop has run to ensure that all servos have received
-          an update for their initial values. Otherwise we may end up
-          briefly driving a servo to a position out of the configured
-          range which could damage hardware
+          安全开关初始化故意延后到首轮调度完成之后，确保所有舵机/推进器
+          已经收到初值，避免输出端短暂跳到配置范围外而损坏硬件。
         */
         done_safety_init = true;
         BoardConfig.init_safety();
