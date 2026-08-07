@@ -101,11 +101,15 @@ public:
         AP_HAL::init();
     }
 
+    // HAL 与车辆层之间最小的生命周期接口。HAL 只决定“何时调用”，
+    // AP_Vehicle/Sub 决定“调用后做什么”，从而避免硬件层依赖具体车辆。
     struct Callbacks {
         virtual void setup() = 0;
         virtual void loop() = 0;
     };
 
+    // 兼容使用两个普通函数作为 setup/loop 的程序；ArduSub 使用的是
+    // 直接传入 AP_Vehicle 派生对象的 AP_HAL_MAIN_CALLBACKS 形式。
     struct FunCallbacks : public Callbacks {
         FunCallbacks(void (*setup_fun)(void), void (*loop_fun)(void));
 
@@ -117,6 +121,7 @@ public:
         void (*_loop)(void);
     };
 
+    // 各平台必须实现自己的 run()。Pixhawk1 最终分派到 HAL_ChibiOS::run()。
     virtual void run(int argc, char * const argv[], Callbacks* callbacks) const = 0;
 
 public:

@@ -1,43 +1,29 @@
-# hw definition file for processing by chibios_hwdef.py
-# for pixhawk1, based on fmuv3
+# Pixhawk1 硬件定义入口，由 chibios_hwdef.py 在 configure 阶段解析。
+# 大部分 MCU、引脚和总线配置继承自 FMUv3，本文件只描述 Pixhawk1 差异。
 
 include ../fmuv3/fmuv3.inc
 
-# define the IMU types to probe. You can list more IMUs than you
-# actually have. The syntax for IMU declarations is:
-#  IMU DriverName DeviceDeclarations Arguments
-# the DriverName is the C++ name of the driver in AP_InertialSensor
-# the DeviceDeclarations are either SPI or I2C
-# for SPI the format is SPI:devicename where devicename comes from the
-# SPIDEV table above
-# for I2C the format is I2C:BusNum:BusAddr7bit, for example I2C:0:0x1e
-#
-# for fmuv3 we normally have two IMUs, one is a mpu6000 with a single SPI CS
-# line. The other is a LSM303D/L3GD20 which uses the LSM9DS0 driver,
-# and two SPIDEV endpoints, one for gyro, one for accel/mag
+# IMU 行决定固件启动时要探测的驱动和总线设备：
+# IMU <AP_InertialSensor 驱动名> <SPI/I2C 设备> <安装方向>。
+# Pixhawk1 通常包含 MPU6000，以及由 LSM9DS0 驱动访问的陀螺仪/加速度计。
 
 IMU Invensense SPI:mpu6000 ROTATION_ROLL_180
 IMU LSM9DS0 SPI:lsm9ds0_g SPI:lsm9ds0_am ROTATION_ROLL_180 ROTATION_ROLL_180_YAW_270 ROTATION_PITCH_180
 
-# define the barometers to probe with BARO lines. These follow the
-# same format as IMU lines
+# 板载气压计。水下深度传感器 MS5837 属于外接 BARO 后端，不在这里替换板载 MS5611。
 BARO MS5611 SPI:ms5611
 
-# probe for two mags.
-# note that the number of arguments and meanings for compass driver
-# declarations is driver dependent. The HMC5843 driver takes two
-# arguments, the first for whether the compass is external and the
-# second the orientation. The LSM303D driver doesn't take any arguments
+# 板载罗盘探测项；参数含义由具体罗盘驱动解释。
 COMPASS HMC5843 SPI:hmc5843 false ROTATION_PITCH_180
 COMPASS LSM303D SPI:lsm9ds0_am ROTATION_NONE
 
-# also probe for external compasses
+# 允许运行时继续探测外部罗盘，是否实际使用仍由参数和硬件决定。
 define AP_COMPASS_PROBING_ENABLED 1
 
-# produce this error if we are on a 1M board
+# 该目标要求 2 MiB Flash；检测到 1 MiB 芯片时提示改用 Pixhawk1-1M。
 undef BOARD_CHECK_F427_USE_1M
 define BOARD_CHECK_F427_USE_1M "ERROR: 1M flash use Pixhawk1-1M"
 
-# enable support for dshot on iomcu
+# 把 IO MCU 的 DShot 固件嵌入主固件 ROMFS。
 ROMFS io_firmware_dshot.bin Tools/IO_Firmware/iofirmware_dshot_lowpolh.bin
 define HAL_WITH_IO_MCU_DSHOT 1

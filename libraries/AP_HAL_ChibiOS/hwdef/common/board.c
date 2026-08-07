@@ -226,12 +226,11 @@ static void stm32_gpio_init(void) {
 #endif //!STM32F100_MCUCONF
 
 /**
- * @brief   Early initialization code.
- * @details This initialization must be performed just after stack setup
- *          and before any other initialization.
+ * @brief   STM32 极早期初始化。
+ * @details 在堆栈建立后、DATA/BSS 和 C++ 全局对象初始化前执行。
  *
- * You must not rely on: 1) BSS variables being cleared 2) DATA Variables being initialized 3) RAM functions to be in RAM
- * You can rely on: 1) const variables or tables 2) flash code 3) automatic variables
+ * 此时不能依赖：BSS 已清零、DATA 已复制、RAM 函数已搬运完成。
+ * 此时可以依赖：常量/常量表、Flash 中的代码以及栈上的自动变量。
  */
 void __early_init(void) {
 #if !defined(STM32F1)
@@ -275,6 +274,10 @@ void __early_init(void) {
 #endif
 }
 
+/*
+ * DATA/BSS 准备完成后的板级初始化。先初始化 ChibiOS HAL，再启动内核；
+ * crt0 随后才会遍历 C++ 全局构造函数，最后调用 main()。
+ */
 void __late_init(void) {
   halInit();
   chSysInit();

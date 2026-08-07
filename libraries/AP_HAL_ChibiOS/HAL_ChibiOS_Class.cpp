@@ -180,15 +180,13 @@ HAL_ChibiOS::HAL_ChibiOS() :
         )
 {}
 
-static bool thread_running = false;        /**< Daemon status flag */
-static thread_t* daemon_task;              /**< Handle of daemon task / thread */
+static bool thread_running = false;        /**< 主循环线程运行标志 */
+static thread_t* daemon_task;              /**< 主循环线程句柄 */
 
 extern const AP_HAL::HAL& hal;
 
 
-/*
-  set the priority of the main APM task
- */
+// 设置 ArduPilot 主线程的 ChibiOS 调度优先级。
 void hal_chibios_set_priority(uint8_t priority)
 {
     chSysLock();
@@ -228,6 +226,8 @@ static void mem_protect_enable()
 
 static AP_HAL::HAL::Callbacks* g_callbacks;
 
+// ChibiOS 平台的车辆主循环。硬件驱动对象已在 HAL_ChibiOS 构造函数中
+// 组合完成；这里负责初始化它们，然后调用车辆的 setup()/loop()。
 static void main_loop()
 {
     daemon_task = chThdGetSelfX();
@@ -239,9 +239,7 @@ static void main_loop()
     }
 #endif
 
-    /*
-      switch to high priority for main loop
-     */
+    // 先提高主线程优先级，完成总线和基础驱动初始化。
     chThdSetPriority(APM_MAIN_PRIORITY);
 
 #ifdef HAL_I2C_CLEAR_BUS
@@ -266,10 +264,7 @@ static void main_loop()
     hal.analogin->init();
     hal.scheduler->init();
 
-    /*
-      run setup() at low priority to ensure CLI doesn't hang the
-      system, and to allow initial sensor read loops to run
-     */
+    // setup() 可能持续较久，临时降低优先级，让传感器等后台线程仍可运行。
     hal_chibios_set_priority(APM_STARTUP_PRIORITY);
 
     if (stm32_was_watchdog_reset()) {
@@ -280,6 +275,7 @@ static void main_loop()
 
     schedulerInstance.hal_initialized();
 
+    // 对 ArduSub 而言，这里进入 AP_Vehicle::setup()。
     g_callbacks->setup();
 
 #if HAL_ENABLE_SAVE_PERSISTENT_PARAMS
@@ -319,9 +315,7 @@ static void main_loop()
     thread_running = true;
     chRegSetThreadName(AP_BUILD_TARGET_NAME);
 
-    /*
-      switch to high priority for main loop
-     */
+    // 初始化完成后恢复主循环优先级。
     chThdSetPriority(APM_MAIN_PRIORITY);
 
 #if AP_BOARDCONFIG_MCU_MEMPROTECT_ENABLED
@@ -329,17 +323,12 @@ static void main_loop()
 #endif  // AP_BOARDCONFIG_MCU_MEMPROTECT_ENABLED
 
     while (true) {
+        // 对 ArduSub 而言，这里进入 AP_Vehicle::loop()，再进入 AP_Scheduler。
         g_callbacks->loop();
 
 #if HAL_SCHEDULER_LOOP_DELAY_ENABLED && !APM_BUILD_TYPE(APM_BUILD_Replay)
-        /*
-          give up 50 microseconds of time if the INS loop hasn't
-          called delay_microseconds_boost(), to ensure low priority
-          drivers get a chance to run. Calling
-          delay_microseconds_boost() means we have already given up
-          time from the main loop, so we don't need to do it again
-          here
-         */
+        // 如果 INS 没有主动让出时间，则让出 50 微秒，避免低优先级驱动饿死。
+        // 已调用 delay_microseconds_boost() 时说明本轮已经让出过 CPU。
         if (!schedulerInstance.check_called_boost()) {
             hal.scheduler->delay_microseconds(50);
         }
@@ -356,11 +345,10 @@ void HAL_ChibiOS::run(int argc, char * const argv[], Callbacks* callbacks) const
     stm32_watchdog_pat();
 #endif
     /*
-     * System initializations.
-     * - ChibiOS HAL initialization, this also initializes the configured device drivers
-     *   and performs the board-specific initializations.
-     * - Kernel initialization, the main() function becomes a thread and the
-     *   RTOS is active.
+     * ChibiOS 启动代码在进入这里前已完成 HAL 与内核初始化：
+     * - 根据 hwdef 初始化板级设备驱动；
+     * - 启动 RTOS，并把 main() 所在执行流变为线程。
+     * 本函数保存车辆回调对象，然后把控制权交给 main_loop()。
      */
 
 #if AP_SIM_ENABLED
@@ -385,7 +373,7 @@ void HAL_ChibiOS::run(int argc, char * const argv[], Callbacks* callbacks) const
 
     g_callbacks = callbacks;
 
-    //Takeover main
+    // 从这里开始由 ArduPilot 主循环长期接管当前线程。
     main_loop();
 }
 

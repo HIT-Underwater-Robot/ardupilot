@@ -27,6 +27,8 @@
 #include <stdio.h>
 #include "ch.h"
 
+// Pixhawk1 使用的 HAL 实现。run() 接收车辆回调对象，并负责完成
+// ChibiOS/硬件初始化后反复调用 callbacks->loop()。
 class HAL_ChibiOS : public AP_HAL::HAL {
 public:
     HAL_ChibiOS();

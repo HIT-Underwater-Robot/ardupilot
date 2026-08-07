@@ -22,6 +22,12 @@
 #define AP_MAIN main
 #endif
 
+/*
+ * 教学主线：车辆代码不直接维护平台相关的 main()。
+ * AP_HAL_MAIN() 把一对普通 setup/loop 函数包装成 Callbacks；
+ * AP_HAL_MAIN_CALLBACKS() 则直接接收实现了 HAL::Callbacks 的对象。
+ * 两者最终都调用当前平台 HAL 的 run()，由 HAL 决定线程、驱动和循环机制。
+ */
 #define AP_HAL_MAIN() \
     AP_HAL::HAL::FunCallbacks callbacks(setup, loop); \
     extern "C" {                               \
