@@ -662,6 +662,7 @@ Board = BoardMeta('Board', Board.__bases__, dict(Board.__dict__))
 
 def add_dynamic_boards_chibios():
     '''add boards based on existence of hwdef.dat in subdirectories for ChibiOS'''
+    # 根据 ChibiOS hwdef 子目录动态注册板卡。
     add_dynamic_boards_from_hwdef_dir(chibios, 'libraries/AP_HAL_ChibiOS/hwdef')
 
 def add_dynamic_boards_linux():
@@ -678,6 +679,7 @@ def add_dynamic_boards_sitl():
 
 def add_dynamic_boards_from_hwdef_dir(base_type, hwdef_dir):
     '''add boards based on existence of hwdef.dat in subdirectory'''
+    # 把含 hwdef.dat/hwdef-bl.dat 的目录名转换为 Waf 板卡类。
     dirname, dirlist, filenames = next(os.walk(hwdef_dir))
     for d in dirlist:
         if d in _board_classes.keys():
@@ -685,6 +687,7 @@ def add_dynamic_boards_from_hwdef_dir(base_type, hwdef_dir):
         hwdef = os.path.join(dirname, d, 'hwdef.dat')
         hwdef_bl = os.path.join(dirname, d, 'hwdef-bl.dat')
         if os.path.exists(hwdef) or os.path.exists(hwdef_bl):
+            # 例如目录名 Pixhawk1 会在运行时生成同名类，并继承 ChibiOS 板卡规则。
             newclass = type(d, (base_type,), {'name': d})
 
 def add_dynamic_boards_esp32():
@@ -702,6 +705,7 @@ def add_dynamic_boards_esp32():
                 newclass = type(d, (esp32,), {'name': d})
 
 def get_boards_names():
+    # list_boards 和 configure --board 都通过这里取得合法板卡名。
     add_dynamic_boards_chibios()
     add_dynamic_boards_esp32()
     add_dynamic_boards_linux()
@@ -739,6 +743,7 @@ def get_removed_boards():
 
 @conf
 def get_board(ctx):
+    # 第一次调用时把 cfg.env.BOARD 指定的名称实例化；后续复用同一板卡对象。
     global _board
     if not _board:
         if not ctx.env.BOARD:

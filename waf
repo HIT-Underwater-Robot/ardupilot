@@ -5,14 +5,12 @@ import runpy
 import subprocess
 import sys
 
-# default Python of the oldest Standard Support Debian + Ubuntu LTS.
-# Debian releases: https://www.debian.org/releases
-# Ubuntu releases: https://releases.ubuntu.com
-# also update `cfg.check_python_version` in `./wscript` and `target-version` in `pyproject.toml`
+# 教学说明：这个文件只是最外层启动器，不负责描述 ArduSub 的源码依赖。
+# 它先检查 Python 版本，再把控制权交给 modules/waf/waf-light。
+# 修改最低 Python 版本时，还要同步根 wscript 和 pyproject.toml 中的版本。
 MIN_VER = (3, 9, 0)
 
-# check before we start loading code and e.g. encounter SyntaxErrors. this means
-# this file should remain compatible with any Python 3 (at least syntax-wise).
+# 必须在加载 Waf 代码前完成版本检查，否则旧 Python 可能先遇到语法错误。
 if sys.version_info[:3] < MIN_VER:
     min_txt = ".".join(str(v) for v in MIN_VER)
     current_txt = ".".join(str(v) for v in sys.version_info[:3])
@@ -25,7 +23,8 @@ def main():
     d = p.dirname(p.realpath(__file__))
     waf_light = p.join(d, 'modules', 'waf', 'waf-light')
 
-    if not p.isfile(waf_light): # file does not exist?
+    # waf-light 位于 Git 子模块中；缺失通常说明克隆时没有初始化子模块。
+    if not p.isfile(waf_light):
         print('Missing waf submodule. Trying to get it')
 
         try:
@@ -37,9 +36,10 @@ def main():
 
         print('Submodules OK, try running again')
 
-        return 0 # ensure user sees what happened
+        # 本次只完成子模块恢复，让用户再次执行原命令。
+        return 0
 
-    # run as if python3 "$waf_light"
+    # 等价于执行 python3 modules/waf/waf-light，之后由根 wscript 接管。
     runpy.run_path(waf_light, {}, "__main__")
 
     return 0

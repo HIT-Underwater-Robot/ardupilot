@@ -472,6 +472,8 @@ def _collect_autoconfig_files(cfg):
                 cfg.files.append(p)
 
 def configure(cfg):
+    # configure 阶段只建立“如何编译”的环境，不编译 ArduSub 源码：
+    # 选择板卡 -> 加载对应工具链/HAL -> 解析功能开关 -> 配置代码生成器。
     if is_ci:
         print(f"::group::Waf Configure")
 	# we need to enable debug mode when building for gconv, and force it to sitl
@@ -776,6 +778,8 @@ def _build_cmd_tweaks(bld):
         bld.options.clear_failed_tests = True
 
 def _build_dynamic_sources(bld):
+    # MAVLink XML 不是直接被 C++ include 的。这里先调用 mavgen，把 all.xml
+    # 展开为当前构建所需的 C/C++ 消息头文件。
     if not bld.env.BOOTLOADER:
         bld(
             features='mavgen',
@@ -790,6 +794,7 @@ def _build_dynamic_sources(bld):
             ],
             )
 
+    # 只有板卡启用 CAN 时才生成 DroneCAN DSDL 源码。
     if (bld.get_board().with_can or bld.env.HAL_NUM_CAN_IFACES) and not bld.env.AP_PERIPH:
         bld(
             features='dronecangen',
@@ -832,8 +837,7 @@ def _build_dynamic_sources(bld):
     ])
 
 def _build_common_taskgens(bld):
-    # Compile the DroneCAN/libcanard generated sources once into a shared
-    # objects target that every stlib links via 'use' (see ap_stlib)
+    # DroneCAN 生成源码只编译一次，再作为公共目标供静态库复用。
     if (bld.get_board().with_can or bld.env.HAL_NUM_CAN_IFACES) and not bld.env.AP_PERIPH:
         bld.objects(
             name='dronecan_libs',
@@ -843,10 +847,7 @@ def _build_common_taskgens(bld):
             use=['dronecan', 'mavlink'],
         )
 
-    # NOTE: Static library with vehicle set to UNKNOWN, shared by all
-    # the tools and examples. This is the first step until the
-    # dependency on the vehicles is reduced. Later we may consider
-    # split into smaller pieces with well defined boundaries.
+    # 为工具和示例建立公共静态库。车辆值 UNKNOWN 表示它不属于某一具体车辆。
     bld.ap_stlib(
         name='ap',
         ap_vehicle='UNKNOWN',
@@ -860,6 +861,8 @@ def _build_common_taskgens(bld):
         bld.libbenchmark()
 
 def _build_recursion(bld):
+    # 扫描含 wscript 的目录并注册构建目标。注册某目录不等于其中所有代码
+    # 都会链接进 ardusub，最终仍由 program group、依赖和功能宏筛选。
     common_dirs_patterns = [
         # TODO: Currently each vehicle also generate its own copy of the
         # libraries. Fix this, or at least reduce the amount of
@@ -934,6 +937,8 @@ def _load_pre_build(bld):
         brd.pre_build(bld)    
 
 def build(bld):
+    # build 阶段主线：载入板卡规则 -> 生成协议/配置源码 -> 建立公共库
+    # -> 递归进入 ArduSub/wscript -> 链接并由板卡规则打包固件。
     if is_ci:
         print(f"::group::Waf Build")
     config_hash = Utils.h_file(bld.bldnode.make_node('ap_config.h').abspath())
@@ -994,6 +999,7 @@ ardupilotwaf.build_command('check-all',
     doc='shortcut for `waf check --alltests`',
 )
 
+# 为车辆名创建 Waf 命令。ArduSub 对应的命令名是 sub，而最终程序名是 ardusub。
 for name in (vehicles + ['bootloader','iofirmware','AP_Periph','replay']):
     ardupilotwaf.build_command(name,
         program_group_list=name,

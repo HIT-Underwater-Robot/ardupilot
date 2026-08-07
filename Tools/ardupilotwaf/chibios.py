@@ -340,6 +340,7 @@ class set_app_descriptor(Task.Task):
 
 class generate_apj(Task.Task):
     '''generate an apj firmware file'''
+    # 把原始固件和板卡元数据封装成地面站可识别的 APJ 文件。
     color='CYAN'
     always_run = True
     def keyword(self):
@@ -375,8 +376,7 @@ class generate_apj(Task.Task):
         if self.env.BRAND_NAME:
             d["brand_name"] = self.env.BRAND_NAME
         if self.env.build_dates:
-            # we omit build_time when we don't have build_dates so that apj
-            # file is identical for same git hash and compiler
+            # 只有启用构建日期时才写入时间；否则相同提交和编译器可生成一致的 APJ。
             d["build_time"] = int(time.time())
         if self.env.AP_SIGNED_FIRMWARE and self.env.PRIVATE_KEY:
             # The firmware file was signed during the build process, so set the flag
@@ -421,6 +421,8 @@ class build_intel_hex(Task.Task):
 @feature('ch_ap_program')
 @after_method('process_source')
 def chibios_firmware(self):
+    # 链接器先产生 ELF；下面按顺序派生 BIN、APJ，并在条件满足时生成含
+    # Bootloader 的 HEX。set_run_after() 明确规定各打包任务的先后关系。
     self.link_task.always_run = True
 
     link_output = self.link_task.outputs[0]
@@ -468,7 +470,7 @@ def chibios_firmware(self):
         default_params_task.set_run_after(self.link_task)
         generate_bin_task.set_run_after(default_params_task)
 
-    # we need to setup the app descriptor so the bootloader can validate the firmware
+    # 写入应用描述符，使 Bootloader 能校验固件身份和完整性。
     if not self.bld.env.BOOTLOADER:
         app_descriptor_task = self.create_task('set_app_descriptor', src=[link_output,bin_target[0]])
         app_descriptor_task.set_run_after(generate_bin_task)
@@ -534,6 +536,8 @@ def setup_optimization(env):
     env.CHIBIOS_BUILD_FLAGS += ' USE_COPT=%s' % OPTIMIZE
 
 def configure(cfg):
+    # ChibiOS 板卡的 configure 入口：寻找 ARM 工具、记录源码/构建路径，
+    # 解析 hwdef，并把结果转换为编译宏、链接参数和板卡功能。
     cfg.find_program('make', var='MAKE')
     #cfg.objcopy = cfg.find_program('%s-%s'%(cfg.env.TOOLCHAIN,'objcopy'), var='OBJCOPY', mandatory=True)
     cfg.find_program('arm-none-eabi-objcopy', var='OBJCOPY')
@@ -563,7 +567,7 @@ def configure(cfg):
     env.APJ_TOOL = srcpath('Tools/scripts/apj_tool.py')
     env.SERIAL_PORT = srcpath('/dev/serial/by-id/*_STLink*')
 
-    # relative paths to pass to make, relative to directory that make is run from
+    # ChibiOS 自己还会调用 Make；这里准备相对于构建目录的路径。
     env.CH_ROOT_REL = os.path.relpath(env.CH_ROOT, env.BUILDROOT)
     env.CC_ROOT_REL = os.path.relpath(env.CC_ROOT, env.BUILDROOT)
     env.AP_HAL_REL = os.path.relpath(env.AP_HAL_ROOT, env.BUILDROOT)
@@ -571,7 +575,7 @@ def configure(cfg):
 
     mk_custom = srcpath('libraries/AP_HAL_ChibiOS/hwdef/%s/chibios_board.mk' % env.BOARD)
     mk_common = srcpath('libraries/AP_HAL_ChibiOS/hwdef/common/chibios_board.mk')
-    # see if there is a board specific make file
+    # 板卡可提供专属 Makefile；没有时使用 ChibiOS 公共规则。
     if os.path.exists(mk_custom):
         env.BOARD_MK = mk_custom
     else:
@@ -611,11 +615,12 @@ def configure(cfg):
 
 def generate_hwdef_h(env):
     '''run chibios_hwdef.py'''
+    # 解析板卡 hwdef，并在 build/<board>/ 中生成硬件配置和链接文件。
     if env.BOOTLOADER:
         if len(env.HWDEF) == 0:
             env.HWDEF = os.path.join(env.SRCROOT, 'libraries/AP_HAL_ChibiOS/hwdef/%s/hwdef-bl.dat' % env.BOARD)
         else:
-            # update to using hwdef-bl.dat
+            # Bootloader 构建使用 hwdef-bl.dat，而不是普通固件定义。
             env.HWDEF = env.HWDEF.replace('hwdef.dat', 'hwdef-bl.dat')
         bootloader_flag = True
     else:
@@ -648,6 +653,7 @@ def generate_hwdef_h(env):
 
 def pre_build(bld):
     '''pre-build hook to change dynamic sources'''
+    # 根据 hwdef 结果补充 CAN、LittleFS 等动态依赖。
     if bld.env.HAL_NUM_CAN_IFACES:
         bld.get_board().with_can = True
     if bld.env.WITH_LITTLEFS:
@@ -655,12 +661,12 @@ def pre_build(bld):
     setup_optimization(bld.env)
 
 def build(bld):
-
-    # make ccache effective on ChibiOS builds
+    # 建立 ChibiOS 底层库任务。ArduSub 的 C++ 目标最终会与 libch.a 一起链接。
+    # 忽略 nano/nosys specs 差异，让 ccache 能复用 ChibiOS 编译结果。
     os.environ['CCACHE_IGNOREOPTIONS'] = '--specs=nano.specs --specs=nosys.specs'
     
     bld(
-        # create the file modules/ChibiOS/include_dirs
+        # 让 ChibiOS Make 规则生成实际使用的头文件搜索路径。
         rule="touch Makefile && BUILDDIR=${BUILDDIR_REL} BUILDROOT=${BUILDROOT} CRASHCATCHER=${CC_ROOT_REL} CHIBIOS=${CH_ROOT_REL} AP_HAL=${AP_HAL_REL} ${CHIBIOS_BUILD_FLAGS} ${CHIBIOS_BOARD_NAME} ${MAKE} pass -f '${BOARD_MK}'",
         group='dynamic_sources',
         target=bld.bldnode.find_or_declare('modules/ChibiOS/include_dirs')
@@ -687,7 +693,7 @@ def build(bld):
 
     if bld.env.ENABLE_CRASHDUMP:
         ch_task = bld(
-            # build libch.a from ChibiOS sources and hwdef.h
+            # 根据 ChibiOS 源码和生成的 hwdef.h 构建底层静态库。
             rule="BUILDDIR='${BUILDDIR_REL}' BUILDROOT='${BUILDROOT}' CRASHCATCHER='${CC_ROOT_REL}' CHIBIOS='${CH_ROOT_REL}' AP_HAL=${AP_HAL_REL} ${CHIBIOS_BUILD_FLAGS} ${CHIBIOS_BOARD_NAME} ${HAL_MAX_STACK_FRAME_SIZE} '${MAKE}' -j%u lib -f '${BOARD_MK}'" % bld.options.jobs,
             group='dynamic_sources',
             source=common_src,
@@ -695,7 +701,7 @@ def build(bld):
         )
     else:
         ch_task = bld(
-            # build libch.a from ChibiOS sources and hwdef.h
+            # 未启用崩溃转储时只生成 libch.a。
             rule="BUILDDIR='${BUILDDIR_REL}' BUILDROOT='${BUILDROOT}' CHIBIOS='${CH_ROOT_REL}' AP_HAL=${AP_HAL_REL} ${CHIBIOS_BUILD_FLAGS} ${CHIBIOS_BOARD_NAME} ${HAL_MAX_STACK_FRAME_SIZE} '${MAKE}' -j%u lib -f '${BOARD_MK}'" % bld.options.jobs,
             group='dynamic_sources',
             source=common_src,
