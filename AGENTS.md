@@ -1,5 +1,20 @@
 # AI Contribution Guidelines for ArduPilot
 
+## ArduSub 教学仓库专用入口（所有 AI 必须先读）
+
+本仓库不是普通的 ArduPilot 上游开发副本，而是一套以 **ArduSub、源码教学和可验证二次开发** 为目标的学习仓库。
+
+在分析、解释或修改任何文件之前，AI 助手必须先完整阅读：
+
+1. [仓库目标与编译入口](README.md)；
+2. [20 章中文学习地图](docs/learning/README.md)；
+3. [AI 接手开发指南与可复制提示词](docs/learning/AI_DEVELOPMENT_GUIDE.md)；
+4. 与当前任务直接相关的学习章节和真实源码。
+
+本仓库要求采用“小步、可解释、可编译”的方式工作。每批操作开始前先说明目的、原因和预计涉及的文件；不得一次性复制、大量删除或重写目录；不得为了教学凭空简化安全关键逻辑。详细的项目边界、硬件背景、讲解格式、验证矩阵和禁止事项均以 AI 接手开发指南为准。
+
+下面的上游 ArduPilot 通用规则继续完整生效。如果专用指南与通用规则存在疑问，应采用更保守、更安全且更容易验证的做法，并明确告知用户。
+
 This document provides guidelines for AI assistants (ChatGPT, Claude, Copilot, Gemini, or any LLM-based tool) contributing code to the ArduPilot project. These rules supplement the existing [CONTRIBUTING.md](.github/CONTRIBUTING.md) and [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) — both of which apply fully to AI-assisted contributions.
 
 ArduPilot is safety-critical autopilot software controlling real vehicles. Every change must be correct, tested, and reviewable by human maintainers.
