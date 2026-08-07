@@ -1,7 +1,12 @@
 #!/usr/bin/env python3
 
+# ArduSub 的车辆级构建入口。
+# 根 wscript 会递归进入本目录；“./waf sub”只构建 program_groups 中的 sub 组。
 def build(bld):
     vehicle = bld.path.name
+
+    # 先生成 ArduSub 专用静态库。公共车辆库由
+    # ap_common_vehicle_libraries() 提供，列表中的库是 ArduSub 额外直接依赖。
     bld.ap_stlib(
         name=vehicle + '_libs',
         ap_vehicle=vehicle,
@@ -16,6 +21,8 @@ def build(bld):
         ],
     )
 
+    # 再把上面的静态库链接为 ardusub。bin 决定输出目录，sub 让
+    # “./waf sub”能够选择这个目标。
     bld.ap_program(
         program_name='ardusub',
         program_groups=['bin', 'sub'],

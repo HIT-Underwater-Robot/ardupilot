@@ -14,11 +14,15 @@
  */
 #pragma once
 /*
-  This is the main Sub class
+  ArduSub 顶层车辆类声明。
+
+  初学时把本文件看作“系统装配图”：Sub 继承 AP_Vehicle，并持有参数、
+  传感器、控制器、导航器、推进器、通信和模式对象。具体算法分散在
+  ArduSub 目录的实现文件与 libraries 各库中，本文件主要展示它们如何组合。
  */
 
 ////////////////////////////////////////////////////////////////////////////////
-// Header includes
+// 头文件依赖
 ////////////////////////////////////////////////////////////////////////////////
 
 #include <cmath>
@@ -27,7 +31,7 @@
 
 #include <AP_HAL/AP_HAL.h>
 
-// Common dependencies
+// ArduPilot 公共基础设施：参数、存储、数学和校准。
 #include <AP_Common/AP_Common.h>
 #include <AP_Common/Location.h>
 #include <AP_Param/AP_Param.h>
@@ -36,7 +40,7 @@
 #include <AP_Math/AP_Math.h>            // ArduPilot Mega Vector/Matrix math Library
 #include <AP_Declination/AP_Declination.h>     // ArduPilot Mega Declination Helper Library
 
-// Application dependencies
+// 车辆功能库：传感器、状态估计、控制、导航、执行器和任务。
 #include <AP_GPS/AP_GPS.h>             // ArduPilot GPS library
 #include <AP_Logger/AP_Logger.h>          // ArduPilot Mega Flash Memory Library
 #include <AP_Baro/AP_Baro.h>
@@ -64,7 +68,7 @@
 #include <AP_Rally/AP_Rally.h>
 #include <AP_OSD/AP_OSD.h>
 
-// Local modules
+// ArduSub 车辆层自己的参数、通信、模式和解锁实现。
 #include "defines.h"
 #include "config.h"
 #include "GCS_MAVLink_Sub.h"
@@ -78,7 +82,7 @@
 
 #include <AP_OpticalFlow/AP_OpticalFlow.h>     // Optical Flow library
 
-// libraries which are dependent on #defines in defines.h and/or config.h
+// 受 defines.h/config.h 功能宏控制的可选依赖。
 #if RCMAP_ENABLED
 #include <AP_RCMapper/AP_RCMapper.h>        // RC input mapping library
 #endif
@@ -99,6 +103,8 @@
 #include <AP_Scripting/AP_Scripting.h>
 #endif
 
+// 单个 ArduSub 固件只创建一个 Sub 实例。friend 类用于让车辆专属的
+// 通信、参数、模式和解锁对象访问顶层状态。
 class Sub : public AP_Vehicle {
 public:
     friend class GCS_MAVLINK_Sub;
@@ -129,11 +135,11 @@ protected:
 
 private:
 
-    // Global parameters are all contained within the 'g' class.
+    // g/g2 保存 ArduSub 参数对象；参数定义和索引位于 Parameters.*。
     Parameters g;
     ParametersG2 g2;
 
-    // primary input control channels
+    // 归一化后的六自由度主要控制输入通道。
     RC_Channel *channel_roll;
     RC_Channel *channel_pitch;
     RC_Channel *channel_throttle;
@@ -155,13 +161,13 @@ private:
         LowPassFilterFloat alt_filt;         // altitude filter
     } rangefinder_state = { false, false, 0, 0, 0, 0, 0, 0 };
 
-    // Mission library
+    // 任务库通过回调把任务项交回 Sub 执行和验证。
     AP_Mission mission{
             FUNCTOR_BIND_MEMBER(&Sub::start_command, bool, const AP_Mission::Mission_Command &),
             FUNCTOR_BIND_MEMBER(&Sub::verify_command_callback, bool, const AP_Mission::Mission_Command &),
             FUNCTOR_BIND_MEMBER(&Sub::exit_mission, void)};
 
-    // Optical flow sensor
+    // 可选光流传感器对象。
 #if AP_OPTICALFLOW_ENABLED
     AP_OpticalFlow optflow;
 #endif
@@ -173,34 +179,33 @@ private:
     // count number of times the AHRS yaw has been reset:
     uint16_t ahrs_yaw_reset_count;
 
-    // GCS selection
-    GCS_Sub _gcs; // avoid using this; use gcs()
+    // ArduSub 地面站接口；业务代码统一通过 gcs() 访问。
+    GCS_Sub _gcs;
     GCS_Sub &gcs() { return _gcs; }
 
-    // User variables
+    // 用户扩展变量入口。
 #ifdef USERHOOK_VARIABLES
 # include USERHOOK_VARIABLES
 #endif
 
-    // Documentation of Globals:
+    // 车辆全局状态位；集中保存启动、记录、测试、水面/水底和深度计状态。
     union {
         struct {
-            uint8_t pre_arm_check       : 1; // true if all pre-arm checks (rc, accel calibration, gps lock) have been performed
-            uint8_t logging_started     : 1; // true if logging has started
-            uint8_t compass_mot         : 1; // true if we are currently performing compassmot calibration
-            uint8_t motor_test          : 1; // true if we are currently performing the motors test
-            uint8_t initialised         : 1; // true once the init_ardupilot function has completed.  Extended status to GCS is not sent until this completes
-            uint8_t gps_base_pos_set    : 1; // true when the gps base position has been set (used for RTK gps only)
-            uint8_t at_bottom           : 1; // true if we are at the bottom
-            uint8_t at_surface          : 1; // true if we are at the surface
-            uint8_t depth_sensor_present: 1; // true if there is a depth sensor detected at boot
-            uint8_t unused1             : 1; // was compass_init_location; true when the compass's initial location has been set
+            uint8_t pre_arm_check       : 1; // 已完成全部解锁前检查
+            uint8_t logging_started     : 1; // 日志已经开始记录
+            uint8_t compass_mot         : 1; // 正在执行电机磁干扰校准
+            uint8_t motor_test          : 1; // 正在执行电机测试
+            uint8_t initialised         : 1; // init_ardupilot() 已完成
+            uint8_t gps_base_pos_set    : 1; // RTK GPS 基站位置已设置
+            uint8_t at_bottom           : 1; // 已判定到达水底
+            uint8_t at_surface          : 1; // 已判定到达水面
+            uint8_t depth_sensor_present: 1; // 启动时检测到水压深度传感器
+            uint8_t unused1             : 1; // 保留位，原 compass_init_location
         };
         uint32_t value;
     } ap;
 
-    // This is the state of the flight control system
-    // There are multiple states defined such as STABILIZE, ACRO,
+    // 当前和上一个控制模式；实际模式对象定义在 mode.h/mode_*.cpp。
     Mode::Number control_mode;
 
     Mode::Number prev_control_mode;
@@ -209,7 +214,7 @@ private:
     RCMapper rcmap;
 #endif
 
-    // Failsafe
+    // 失控保护状态及各类告警的时间记录。
     struct {
         uint32_t last_leak_warn_ms;      // last time a leak warning was sent to gcs
         uint32_t last_gcs_warn_ms;
@@ -249,15 +254,16 @@ private:
         );
     }
 
-    // sensor health for logging
+    // 用于日志和失控保护判断的传感器健康状态。
     struct {
         uint8_t depth       : 1;    // true if depth sensor is healthy
         uint8_t compass     : 1;    // true if compass is healthy
     } sensor_health;
 
-    // Baro sensor instance index of the external water pressure sensor
+    // AP_Baro 实例数组中，外接水压深度传感器的索引。
     uint8_t depth_sensor_idx;
 
+    // 六自由度推进器混控器，是控制量进入电机输出链的车辆层入口。
     AP_Motors6DOF motors;
 
     // Circle
@@ -328,8 +334,7 @@ private:
 
     AP_AHRS_View ahrs_view;
 
-    // Attitude, Position and Waypoint navigation objects
-    // To-Do: move inertial nav up or other navigation variables down here
+    // 姿态、位置、航点、定点和圆周导航控制对象。
     AC_AttitudeControl_Sub attitude_control;
 
     AC_PosControl pos_control;
@@ -362,7 +367,7 @@ private:
     AP_Terrain terrain;
 #endif
 
-    // used to allow attitude and depth control without a position system
+    // 无位置系统时，暂存 MAVLink 姿态/深度目标及其最后更新时间。
     struct attitude_no_gps_struct {
         uint32_t last_message_ms;
         mavlink_set_attitude_target_t packet;
@@ -370,8 +375,7 @@ private:
 
     attitude_no_gps_struct set_attitude_target_no_gps {0};
 
-    // Top-level logic
-    // setup the var_info table
+    // 根据 var_info 建立顶层参数表。
     AP_Param param_loader;
 
     float last_pilot_heading_rad;
@@ -382,6 +386,7 @@ private:
     static const AP_Param::Info var_info[];
     static const struct LogStructure log_structure[];
 
+    // 下列函数首先是 scheduler_tasks[] 直接调用的周期任务。
     void run_rate_controller();
     void fifty_hz_loop();
     void update_batt_compass(void);
@@ -403,7 +408,7 @@ private:
     float get_pilot_desired_horizontal_rate(RC_Channel *channel) const;
     void rotate_body_frame_to_NE(float &x, float &y);
 #if HAL_LOGGING_ENABLED
-    // methods for AP_Vehicle:
+    // AP_Vehicle 日志接口和 ArduSub 专属日志写入函数。
     const AP_Int32 &get_log_bitmask() override { return g.log_bitmask; }
     const struct LogStructure *get_log_structures() const override {
         return log_structure;
@@ -440,6 +445,7 @@ private:
     bool verify_within_distance();
     bool verify_yaw();
 
+    // 失控保护、模式切换、估计更新和执行器输出入口。
     void failsafe_sensors_check(void);
     void failsafe_crash_check();
     void failsafe_ekf_check(void);
@@ -501,6 +507,7 @@ private:
     void read_rangefinder(void);
     void terrain_update();
     void terrain_logging();
+    // AP_Vehicle::setup() 调用车辆初始化；get_scheduler_tasks() 返回上面的任务表。
     void init_ardupilot() override;
     void get_scheduler_tasks(const AP_Scheduler::Task *&tasks,
                              uint8_t &task_count,

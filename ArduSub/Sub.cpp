@@ -21,9 +21,7 @@
 
 const AP_HAL::HAL& hal = AP_HAL::get_HAL();
 
-/*
-  constructor for main Sub class
- */
+// 构造唯一的 Sub 车辆对象，并把控制器、导航器和推进器按依赖顺序连接起来。
 Sub::Sub()
     :
 
@@ -54,54 +52,45 @@ Sub::Sub()
 #define FAST_TASK(func) FAST_TASK_CLASS(Sub, &sub, func)
 
 /*
-  scheduler table - all tasks should be listed here.
+  ArduSub 车辆任务表，所有车辆级周期任务都应从这里进入。
 
-  All entries in this table must be ordered by priority.
+  本表会与 AP_Vehicle 的公共任务表合并，任务必须按优先级从高到低排列；
+  priority 数字越小，优先级越高。
 
-  This table is interleaved with the table in AP_Vehicle to determine
-  the order in which tasks are run.  Convenience methods SCHED_TASK
-  and SCHED_TASK_CLASS are provided to build entries in this structure:
+  FAST_TASK 每个主循环节拍都执行。SCHED_TASK/SCHED_TASK_CLASS 的参数为：
 
-SCHED_TASK arguments:
- - name of static function to call
- - rate (in Hertz) at which the function should be called
- - expected time (in MicroSeconds) that the function should take to run
- - priority (0 through 255, lower number meaning higher priority)
-
-SCHED_TASK_CLASS arguments:
- - class name of method to be called
- - instance on which to call the method
- - method to call on that instance
- - rate (in Hertz) at which the method should be called
- - expected time (in MicroSeconds) that the method should take to run
- - priority (0 through 255, lower number meaning higher priority)
+  - 要调用的函数，或“类、对象、成员函数”；
+  - 目标执行频率 Hz；
+  - 预计最大执行时间 us；
+  - 任务优先级。
 
  */
 
 const AP_Scheduler::Task Sub::scheduler_tasks[] = {
-    // update INS immediately to get current gyro data populated
+    // 首先取得本轮惯性数据。scheduler.loop() 已等待样本，这里完成数据更新。
     FAST_TASK_CLASS(AP_InertialSensor, &sub.ins, update),
-    // run low level rate controllers that only require IMU data
+    // 使用最新 IMU 数据运行底层角速度控制器。
     FAST_TASK(run_rate_controller),
-    // send outputs to the motors library immediately
+    // 尽快把控制器结果送入推进器混控和硬件输出链。
     FAST_TASK(motors_output),
-     // run EKF state estimator (expensive)
+    // 更新 EKF/AHRS 状态估计；这是计算量较大的快速任务。
     FAST_TASK(read_AHRS),
-    // Inertial Nav
+    // 读取惯性导航位置和速度。
     FAST_TASK(read_inertia),
-    // check if ekf has reset target heading
+    // 检查 EKF 是否重置航向，并同步控制目标。
     FAST_TASK(check_ekf_yaw_reset),
-    // run the attitude controllers
+    // 运行当前模式；模式把驾驶/导航目标转换为姿态、位置或推力目标。
     FAST_TASK(update_flight_mode),
-    // update home from EKF if necessary
+    // 必要时使用 EKF 信息更新 Home。
     FAST_TASK(update_home_from_EKF),
-    // check if we've reached the surface or bottom
+    // 根据深度和运动状态判断是否到达水面或水底。
     FAST_TASK(update_surface_and_bottom_detector),
 #if HAL_MOUNT_ENABLED
-    // camera mount's fast update
+    // 云台需要快速更新的部分。
     FAST_TASK_CLASS(AP_Mount, &sub.camera_mount, update_fast),
 #endif
 
+    // 以下普通任务由“频率、预计耗时、优先级”决定何时运行。
     SCHED_TASK(fifty_hz_loop,         50,     75,   3),
 #if AP_SUB_RC_ENABLED
     SCHED_TASK(rc_loop,              50,    130,  3),
@@ -163,6 +152,7 @@ void Sub::get_scheduler_tasks(const AP_Scheduler::Task *&tasks,
                                  uint8_t &task_count,
                                  uint32_t &log_bit)
 {
+    // AP_Vehicle::setup() 通过这个接口取得 ArduSub 任务表。
     tasks = &scheduler_tasks[0];
     task_count = ARRAY_SIZE(scheduler_tasks);
     log_bit = MASK_LOG_PM;
@@ -177,17 +167,17 @@ void Sub::run_rate_controller()
     attitude_control.set_dt_s(last_loop_time_s);
     pos_control.set_dt_s(last_loop_time_s);
 
-    //don't run rate controller in manual or motordetection modes
+    // MANUAL 直接控制推进器，MOTOR_DETECT 用于检测布局，两者不运行角速度闭环。
     if (control_mode != Mode::Number::MANUAL && control_mode != Mode::Number::MOTOR_DETECT) {
-        // run low level rate controllers that only require IMU data and set loop time
+        // 使用本轮真实 dt 运行底层角速度控制器。
         attitude_control.rate_controller_run();
     }
 }
 
-// 50 Hz tasks
+// 50 Hz 汇总任务：驾驶输入和关键失控保护检查。
 void Sub::fifty_hz_loop()
 {
-    // check pilot input failsafe
+    // 检查是否持续收到有效驾驶输入。
     failsafe_pilot_input_check();
 
     failsafe_crash_check();
@@ -465,9 +455,11 @@ void Sub::rc_loop()
 }
 #endif
 
+// 建立唯一车辆对象，并同时暴露为 AP_Vehicle 引用。
 Sub *Sub::_singleton = nullptr;
 
 Sub sub;
 AP_Vehicle& vehicle = sub;
 
+// 生成平台 main()：HAL_ChibiOS::run() 会调用这个 sub 的 setup()/loop()。
 AP_HAL_MAIN_CALLBACKS(&sub);
