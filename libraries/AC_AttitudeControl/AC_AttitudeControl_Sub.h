@@ -6,12 +6,6 @@
 #include "AC_AttitudeControl.h"
 #include <AP_Motors/AP_MotorsMulticopter.h>
 
-// This branch exists only for the focused learning demos. A custom build may
-// disable all demo-only vehicle and controller code with this option.
-#ifndef AP_SUB_LEARNING_DEMOS_ENABLED
-#define AP_SUB_LEARNING_DEMOS_ENABLED 1
-#endif
-
 // default angle controller PID gains
 // (Sub-specific defaults for parent class)
 #define AC_ATC_SUB_ANGLE_P             6.0f
@@ -67,11 +61,6 @@ public:
 
     // run lowest level body-frame rate controller and send outputs to the motors
     void rate_controller_run() override;
-
-#if AP_SUB_LEARNING_DEMOS_ENABLED
-    // learning-only boundary-layer sliding-mode rate controller
-    void rate_controller_run_smc_demo();
-#endif
 
     // sanity check parameters.  should be called once before take-off
     void parameter_sanity_check() override;
@@ -138,9 +127,4 @@ protected:
     AP_Float              _thr_mix_min;     // throttle vs attitude control prioritisation used when landing (higher values mean we prioritise attitude control over throttle)
     AP_Float              _thr_mix_max;     // throttle vs attitude control prioritisation used during active flight (higher values mean we prioritise attitude control over throttle)
 
-#if AP_SUB_LEARNING_DEMOS_ENABLED
-    AP_Float              _smc_demo_rp_gain;
-    AP_Float              _smc_demo_yaw_gain;
-    AP_Float              _smc_demo_boundary_rads;
-#endif
 };

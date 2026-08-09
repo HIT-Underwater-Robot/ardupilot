@@ -1,17 +1,5 @@
 #include "Sub.h"
 
-// checks if we should update ahrs/RTL home position from the EKF
-void Sub::update_home_from_EKF()
-{
-    // exit immediately if home already set
-    if (ahrs.home_is_set()) {
-        return;
-    }
-    if (!set_home_to_current_location(false)) {
-        // ignore this failure
-    }
-}
-
 // set_home_to_current_location - set home to current GPS location
 bool Sub::set_home_to_current_location(bool lock)
 {

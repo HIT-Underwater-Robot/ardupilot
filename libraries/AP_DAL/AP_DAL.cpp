@@ -4,14 +4,11 @@
 #include <AP_Logger/AP_Logger.h>
 #include <AP_AHRS/AP_AHRS.h>
 #include <AP_Vehicle/AP_Vehicle.h>
-#include <AP_OpticalFlow/AP_OpticalFlow.h>
-#include <AP_WheelEncoder/AP_WheelEncoder.h>
 #include <AP_Vehicle/AP_Vehicle_Type.h>
 #include <AP_NavEKF3/AP_NavEKF3_feature.h>
 #include <AP_NavEKF/AP_Nav_Common.h>
 
 #if APM_BUILD_TYPE(APM_BUILD_Replay)
-#include <AP_NavEKF2/AP_NavEKF2.h>
 #include <AP_NavEKF3/AP_NavEKF3.h>
 #endif
 
@@ -78,7 +75,7 @@ void AP_DAL::start_frame(AP_DAL::FrameType frametype)
 #if AP_OPTICALFLOW_ENABLED
     _RFRN.opticalflow_enabled = AP::opticalflow() && AP::opticalflow()->enabled();
 #endif
-    _RFRN.wheelencoder_enabled = AP::wheelencoder() && (AP::wheelencoder()->num_sensors() > 0);
+    _RFRN.wheelencoder_enabled = false;
     _RFRN.ekf_type = int8_t(ahrs.configured_ekf_type());
     WRITE_REPLAY_BLOCK_IFCHANGED(RFRN, _RFRN, old);
 
@@ -89,9 +86,6 @@ void AP_DAL::start_frame(AP_DAL::FrameType frametype)
     _baro.start_frame();
     _gps.start_frame();
     _compass.start_frame();
-    if (_airspeed) {
-        _airspeed->start_frame();
-    }
 #if AP_RANGEFINDER_ENABLED
     if (_rangefinder) {
         _rangefinder->start_frame();
@@ -131,8 +125,6 @@ void AP_DAL::set_takeoff_expected()
 void AP_DAL::init_sensors(void)
 {
     init_done = true;
-    bool alloc_failed = false;
-
     /*
       we only allocate the DAL backends if we had at least one sensor
       at the time we startup the EKF
@@ -145,30 +137,20 @@ void AP_DAL::init_sensors(void)
     }
 #endif
 
-#if AP_AIRSPEED_ENABLED
-    auto *aspeed = AP::airspeed();
-    if (aspeed != nullptr && aspeed->get_num_sensors() > 0) {
-        alloc_failed |= (_airspeed = NEW_NOTHROW AP_DAL_Airspeed) == nullptr;
-    }
-#endif
-
 #if AP_BEACON_ENABLED
     auto *bcn = AP::beacon();
     if (bcn != nullptr && bcn->enabled()) {
-        alloc_failed |= (_beacon = NEW_NOTHROW AP_DAL_Beacon) == nullptr;
+        _beacon = NEW_NOTHROW AP_DAL_Beacon;
     }
 #endif
 
 #if HAL_VISUALODOM_ENABLED
     auto *vodom = AP::visualodom();
     if (vodom != nullptr && vodom->enabled()) {
-        alloc_failed |= (_visualodom = NEW_NOTHROW AP_DAL_VisualOdom) == nullptr;
+        _visualodom = NEW_NOTHROW AP_DAL_VisualOdom;
     }
 #endif
 
-    if (alloc_failed) {
-        AP_BoardConfig::allocation_error("DAL backends");
-    }
 }
 
 /*
@@ -592,4 +574,3 @@ void rprintf(const char *format, ...)
     va_end(ap);
 #endif
 }
-

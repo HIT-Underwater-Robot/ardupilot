@@ -19,7 +19,9 @@
 #include <AP_InternalError/AP_InternalError.h>
 #include <AP_Logger/AP_Logger.h>
 #include <AP_Arming/AP_Arming.h>
+#if defined(HAVE_AP_BLHELI_SUPPORT) && HAVE_AP_BLHELI_SUPPORT
 #include <AP_BLHeli/AP_BLHeli.h>
+#endif
 #include <ch.h>
 #include <AP_SerialManager/AP_SerialManager.h>
 

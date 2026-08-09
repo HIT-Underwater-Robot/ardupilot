@@ -26,7 +26,9 @@
 #include "GCS.h"
 #include "MAVLink_routing.h"
 
+#if HAL_ADSB_ENABLED
 #include <AP_ADSB/AP_ADSB.h>
+#endif
 
 extern const AP_HAL::HAL& hal;
 

@@ -307,33 +307,6 @@ const AP_Param::GroupInfo AC_AttitudeControl_Sub::var_info[] = {
     // @User: Advanced
     AP_GROUPINFO("THR_MIX_MAN", 6, AC_AttitudeControl_Sub, _thr_mix_man, AC_ATTITUDE_CONTROL_MAN_DEFAULT),
 
-#if AP_SUB_LEARNING_DEMOS_ENABLED
-    // @Param: SMC_RP_K
-    // @DisplayName: Learning SMC roll and pitch gain
-    // @Description: Normalized switching gain used by the learning-only sliding-mode roll and pitch rate controller. This parameter is used only in SMC Stabilize mode.
-    // @Range: 0.01 1.0
-    // @Increment: 0.01
-    // @User: Advanced
-    AP_GROUPINFO("SMC_RP_K", 7, AC_AttitudeControl_Sub, _smc_demo_rp_gain, 0.25f),
-
-    // @Param: SMC_Y_K
-    // @DisplayName: Learning SMC yaw gain
-    // @Description: Normalized switching gain used by the learning-only sliding-mode yaw rate controller. This parameter is used only in SMC Stabilize mode.
-    // @Range: 0.01 1.0
-    // @Increment: 0.01
-    // @User: Advanced
-    AP_GROUPINFO("SMC_Y_K", 8, AC_AttitudeControl_Sub, _smc_demo_yaw_gain, 0.20f),
-
-    // @Param: SMC_BOUND
-    // @DisplayName: Learning SMC boundary layer
-    // @Description: Rate-error boundary layer used to replace the discontinuous sign function with a saturation function in the learning-only sliding-mode controller
-    // @Units: rad/s
-    // @Range: 0.01 2.0
-    // @Increment: 0.01
-    // @User: Advanced
-    AP_GROUPINFO("SMC_BOUND", 9, AC_AttitudeControl_Sub, _smc_demo_boundary_rads, 0.15f),
-#endif
-
     // @Param: RAT_RLL_FILT
     // @DisplayName: Roll axis rate controller input frequency in Hz
     // @Description: Roll axis rate controller input frequency in Hz
@@ -457,28 +430,6 @@ void AC_AttitudeControl_Sub::rate_controller_run()
     _motors.set_pitch(get_rate_pitch_pid().update_all(_ang_vel_body_rads.y, _rate_gyro_rads.y, _dt_s, _motors.limit.pitch));
     _motors.set_yaw(get_rate_yaw_pid().update_all(_ang_vel_body_rads.z, _rate_gyro_rads.z, _dt_s, _motors.limit.yaw));
 }
-
-#if AP_SUB_LEARNING_DEMOS_ENABLED
-void AC_AttitudeControl_Sub::rate_controller_run_smc_demo()
-{
-    update_throttle_rpy_mix();
-
-    _rate_gyro_rads = _ahrs.get_gyro_latest();
-    _rate_gyro_time_us = AP_HAL::micros64();
-
-    const float boundary_rads = constrain_float(_smc_demo_boundary_rads.get(), 0.01f, 2.0f);
-    const float roll_surface = (_ang_vel_body_rads.x - _rate_gyro_rads.x) / boundary_rads;
-    const float pitch_surface = (_ang_vel_body_rads.y - _rate_gyro_rads.y) / boundary_rads;
-    const float yaw_surface = (_ang_vel_body_rads.z - _rate_gyro_rads.z) / boundary_rads;
-
-    const float rp_gain = constrain_float(_smc_demo_rp_gain.get(), 0.01f, 1.0f);
-    const float yaw_gain = constrain_float(_smc_demo_yaw_gain.get(), 0.01f, 1.0f);
-
-    _motors.set_roll(rp_gain * constrain_float(roll_surface, -1.0f, 1.0f));
-    _motors.set_pitch(rp_gain * constrain_float(pitch_surface, -1.0f, 1.0f));
-    _motors.set_yaw(yaw_gain * constrain_float(yaw_surface, -1.0f, 1.0f));
-}
-#endif
 
 // sanity check parameters.  should be called once before takeoff
 void AC_AttitudeControl_Sub::parameter_sanity_check()

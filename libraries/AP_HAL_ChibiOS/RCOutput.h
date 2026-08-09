@@ -19,7 +19,9 @@
 #include <hal.h>
 #include "AP_HAL_ChibiOS.h"
 #include <AP_HAL/Semaphores.h>
+#ifdef HAL_WITH_BIDIR_DSHOT
 #include <AP_ESC_Telem/AP_ESC_Telem.h>
+#endif
 
 #include "shared_dma.h"
 

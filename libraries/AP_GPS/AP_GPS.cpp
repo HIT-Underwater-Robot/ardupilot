@@ -28,19 +28,43 @@
 #include <climits>
 #include <AP_SerialManager/AP_SerialManager.h>
 
+#if AP_GPS_NOVA_ENABLED
 #include "AP_GPS_NOVA.h"
+#endif
+#if AP_GPS_BLENDED_ENABLED
 #include "AP_GPS_Blended.h"
+#endif
+#if AP_GPS_ERB_ENABLED
 #include "AP_GPS_ERB.h"
+#endif
+#if AP_GPS_GSOF_ENABLED
 #include "AP_GPS_GSOF.h"
+#endif
+#if AP_GPS_NMEA_ENABLED
 #include "AP_GPS_NMEA.h"
+#endif
+#if AP_GPS_SBF_ENABLED
 #include "AP_GPS_SBF.h"
+#endif
+#if AP_GPS_SBP_ENABLED
 #include "AP_GPS_SBP.h"
+#endif
+#if AP_GPS_SBP2_ENABLED
 #include "AP_GPS_SBP2.h"
+#endif
+#if AP_GPS_SIRF_ENABLED
 #include "AP_GPS_SIRF.h"
+#endif
 #include "AP_GPS_UBLOX.h"
+#if AP_GPS_MAV_ENABLED
 #include "AP_GPS_MAV.h"
+#endif
+#if HAL_MSP_GPS_ENABLED
 #include "AP_GPS_MSP.h"
+#endif
+#if AP_EXTERNAL_AHRS_ENABLED
 #include "AP_GPS_ExternalAHRS.h"
+#endif
 #include "GPS_Backend.h"
 #if AP_SIM_GPS_ENABLED
 #include "AP_GPS_SITL.h"

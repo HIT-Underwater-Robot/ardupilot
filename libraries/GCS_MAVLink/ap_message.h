@@ -9,7 +9,9 @@
 #include "GCS_config.h"
 
 #include <AP_AHRS/AP_AHRS_config.h>
+#ifndef AP_TERRAIN_AVAILABLE
 #include <AP_Terrain/AP_Terrain_config.h>
+#endif
 
 enum ap_message : uint8_t {
     MSG_HEARTBEAT                      =   0,

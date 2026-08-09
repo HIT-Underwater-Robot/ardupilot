@@ -25,41 +25,26 @@
 #include <AP_Notify/AP_Notify.h>
 #include <GCS_MAVLink/GCS.h>
 #include <GCS_MAVLink/GCS_MAVLink.h>
-#include <AP_Mission/AP_Mission.h>
-#include <AP_Proximity/AP_Proximity.h>
-#include <AP_Rally/AP_Rally.h>
 #include <SRV_Channel/SRV_Channel.h>
-#include <AC_Fence/AC_Fence.h>
 #include <AP_InertialSensor/AP_InertialSensor.h>
 #include <AP_InternalError/AP_InternalError.h>
 #include <AP_GPS/AP_GPS.h>
 #include <AP_Declination/AP_Declination.h>
+#if AP_AIRSPEED_ENABLED
 #include <AP_Airspeed/AP_Airspeed.h>
+#endif
 #include <AP_AHRS/AP_AHRS.h>
 #include <AP_Baro/AP_Baro.h>
-#include <AP_RangeFinder/AP_RangeFinder.h>
-#include <AP_Generator/AP_Generator.h>
-#include <AP_Terrain/AP_Terrain.h>
-#include <AP_ADSB/AP_ADSB.h>
-#include <AP_Scripting/AP_Scripting.h>
-#include <AP_Camera/AP_RunCam.h>
 #include <AP_GyroFFT/AP_GyroFFT.h>
-#include <AP_VisualOdom/AP_VisualOdom.h>
-#include <AP_Parachute/AP_Parachute.h>
-#include <AP_OSD/AP_OSD.h>
 #include <AP_Relay/AP_Relay.h>
 #include <RC_Channel/RC_Channel.h>
-#include <AP_Button/AP_Button.h>
-#include <AP_FETtecOneWire/AP_FETtecOneWire.h>
-#include <AP_RPM/AP_RPM.h>
-#include <AP_Mount/AP_Mount.h>
-#include <AP_OpenDroneID/AP_OpenDroneID.h>
 #include <AP_SerialManager/AP_SerialManager.h>
 #include <AP_Vehicle/AP_Vehicle_Type.h>
 #include <AP_Scheduler/AP_Scheduler.h>
-#include <AP_KDECAN/AP_KDECAN.h>
 #include <AP_Vehicle/AP_Vehicle.h>
+#if AP_ICENGINE_ENABLED
 #include <AP_ICEngine/AP_ICEngine.h>
+#endif
 
 #if HAL_MAX_CAN_PROTOCOL_DRIVERS
   #include <AP_CANManager/AP_CANManager.h>
@@ -999,6 +984,14 @@ bool AP_Arming::mission_checks(bool report)
     }
 #endif
 
+    return true;
+}
+#else
+bool AP_Arming::mission_checks(bool report)
+{
+    // This build has no mission subsystem, so there are no mission items to
+    // validate during pre-arm checks.
+    (void)report;
     return true;
 }
 #endif  // AP_MISSION_ENABLED

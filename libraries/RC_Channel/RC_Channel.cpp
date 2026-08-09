@@ -32,35 +32,68 @@ extern const AP_HAL::HAL& hal;
 #include "RC_Channel.h"
 #include <GCS_MAVLink/GCS.h>
 
+#if AP_AVOIDANCE_ENABLED
 #include <AC_Avoidance/AC_Avoid.h>
+#endif
+#if HAL_SPRAYER_ENABLED
 #include <AC_Sprayer/AC_Sprayer.h>
+#endif
+#if AP_CAMERA_ENABLED
 #include <AP_Camera/AP_Camera.h>
+#endif
+#if AP_CAMERA_RUNCAM_ENABLED
 #include <AP_Camera/AP_RunCam.h>
+#endif
 #include <AP_Compass/AP_Compass.h>
+#if HAL_GENERATOR_ENABLED
 #include <AP_Generator/AP_Generator.h>
+#endif
+#if AP_GRIPPER_ENABLED
 #include <AP_Gripper/AP_Gripper.h>
+#endif
+#if HAL_GYROFFT_ENABLED
 #include <AP_GyroFFT/AP_GyroFFT.h>
+#endif
+#if HAL_ADSB_ENABLED
 #include <AP_ADSB/AP_ADSB.h>
+#endif
 #include <AP_BoardConfig/AP_BoardConfig.h>
 #include <AP_BattMonitor/AP_BattMonitor.h>
+#if AP_LANDINGGEAR_ENABLED
 #include <AP_LandingGear/AP_LandingGear.h>
+#endif
 #include <AP_Logger/AP_Logger.h>
 #include <AP_ServoRelayEvents/AP_ServoRelayEvents.h>
 #include <SRV_Channel/SRV_Channel.h>
 #include <AP_Arming/AP_Arming.h>
+#if AP_ADSB_AVOIDANCE_ENABLED
 #include <AP_Avoidance/AP_Avoidance.h>
+#endif
 #include <AP_GPS/AP_GPS.h>
+#if AP_FENCE_ENABLED
 #include <AC_Fence/AC_Fence.h>
+#endif
+#if AP_OPTICALFLOW_ENABLED
 #include <AP_OpticalFlow/AP_OpticalFlow.h>
+#endif
+#if HAL_VISUALODOM_ENABLED
 #include <AP_VisualOdom/AP_VisualOdom.h>
+#endif
 #include <AP_AHRS/AP_AHRS.h>
+#if HAL_MOUNT_ENABLED
 #include <AP_Mount/AP_Mount.h>
+#endif
 #include <AP_Notify/AP_Notify.h>
+#if AP_VIDEOTX_ENABLED
 #include <AP_VideoTX/AP_VideoTX.h>
+#endif
+#if HAL_TORQEEDO_ENABLED
 #include <AP_Torqeedo/AP_Torqeedo.h>
+#endif
 #include <AP_Vehicle/AP_Vehicle_Type.h>
-#include <AP_Parachute/AP_Parachute_config.h>
+#if AP_SCRIPTING_ENABLED
 #include <AP_Scripting/AP_Scripting.h>
+#endif
 #define SWITCH_DEBOUNCE_TIME_MS  200
 
 const AP_Param::GroupInfo RC_Channel::var_info[] = {
@@ -913,8 +946,10 @@ const RC_Channel::LookupTable RC_Channel::lookuptable[] = {
 #if AP_BATTERY_ENABLED
     { AUX_FUNC::BATTERY_MPPT_ENABLE,"Battery MPPT Enable"},
 #endif
+#if AP_AIRSPEED_ENABLED
 #if AP_AIRSPEED_AUTOCAL_ENABLE
     { AUX_FUNC::ARSPD_CALIBRATE,"Calibrate Airspeed"},
+#endif
 #endif
 #if HAL_TORQEEDO_ENABLED
     { AUX_FUNC::TORQEEDO_CLEAR_ERR, "Torqeedo Clear Err"},

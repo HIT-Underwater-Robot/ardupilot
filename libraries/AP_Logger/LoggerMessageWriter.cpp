@@ -14,7 +14,9 @@
 #endif
 
 #if HAL_LOGGER_RALLY_ENABLED
+#if HAL_RALLY_ENABLED
 #include <AP_Rally/AP_Rally.h>
+#endif
 #endif
 
 #define FORCE_VERSION_H_INCLUDE
@@ -433,6 +435,7 @@ void LoggerMessageWriter_WriteAllRallyPoints::reset()
 }
 #endif  // HAL_LOGGER_RALLY_ENABLED
 
+#if AP_MISSION_ENABLED
 void LoggerMessageWriter_WriteEntireMission::process() {
     const AP_Mission *_mission = AP::mission();
     if (_mission == nullptr) {
@@ -481,6 +484,7 @@ void LoggerMessageWriter_WriteEntireMission::reset()
     stage = Stage::WRITE_NEW_MISSION_MESSAGE;
     _mission_number_to_send = 0;
 }
+#endif
 
 #if HAL_LOGGER_FENCE_ENABLED
 #if APM_BUILD_TYPE(APM_BUILD_Replay)

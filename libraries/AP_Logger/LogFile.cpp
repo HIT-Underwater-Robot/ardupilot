@@ -9,6 +9,7 @@
 #include <AP_HAL/AP_HAL.h>
 #include <AP_Math/AP_Math.h>
 #include <AP_Param/AP_Param.h>
+#include <AP_RTC/AP_RTC.h>
 #include <AP_RSSI/AP_RSSI.h>
 #include <RC_Channel/RC_Channel.h>
 #include <SRV_Channel/SRV_Channel.h>
@@ -305,6 +306,7 @@ void AP_Logger::Write_Command(const mavlink_command_int_t &packet,
     return WriteBlock(&pkt, sizeof(pkt));
 }
 
+#if AP_MISSION_ENABLED
 bool AP_Logger_Backend::Write_Mission_Cmd(const AP_Mission &mission,
                                           const AP_Mission::Mission_Command &cmd,
                                           LogMessages msgid)
@@ -329,7 +331,6 @@ bool AP_Logger_Backend::Write_Mission_Cmd(const AP_Mission &mission,
     return WriteBlock(&pkt, sizeof(pkt));
 }
 
-#if AP_MISSION_ENABLED
 bool AP_Logger_Backend::Write_EntireMission()
 {
     // kick off asynchronous write:

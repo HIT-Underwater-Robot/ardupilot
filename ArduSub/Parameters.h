@@ -5,6 +5,7 @@
 #include <AP_Common/AP_Common.h>
 
 #include <AP_Arming/AP_Arming.h>
+#include <SRV_Channel/SRV_Channel.h>
 #include "actuators.h"
 // Global parameter class.
 //
@@ -250,9 +251,6 @@ public:
         k_param_pilot_speed,
         k_param_failsafe_throttle,
         k_param_failsafe_throttle_value,
-#if AP_SUB_LEARNING_DEMOS_ENABLED
-        k_param_demo_dvl = 245,
-#endif
         k_param_vehicle = 257, // vehicle common block of parameters
         k_param__gcs = 258,
     };
@@ -274,7 +272,6 @@ public:
     AP_Int8         failsafe_temperature;
     AP_Int32        failsafe_pressure_max;
     AP_Int8         failsafe_temperature_max;
-    AP_Int8         failsafe_terrain;
     AP_Int8         failsafe_pilot_input;       // pilot input failsafe behavior
     AP_Float        failsafe_pilot_input_timeout;
     AP_Float        failsafe_gcs_timeout;       // ground station failsafe timeout (seconds)

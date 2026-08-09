@@ -88,13 +88,7 @@ void Sub::failsafe_sensors_check()
     gcs().send_text(MAV_SEVERITY_CRITICAL, "Depth sensor error!");
     LOGGER_WRITE_ERROR(LogErrorSubsystem::FAILSAFE_SENSORS, LogErrorCode::BAD_DEPTH);
 
-    if (control_mode == Mode::Number::ALT_HOLD || control_mode == Mode::Number::SURFACE || sub.flightmode->requires_GPS()) {
-        // This should always succeed
-        if (!set_mode(Mode::Number::MANUAL, ModeReason::BAD_DEPTH)) {
-            // We should never get here
-            arming.disarm(AP_Arming::Method::BADFLOWOFCONTROL);
-        }
-    }
+    // Manual and Stabilize do not use depth feedback for vertical control.
 }
 
 void Sub::failsafe_ekf_check()
@@ -156,7 +150,7 @@ void Sub::handle_battery_failsafe(const char* type_str, const int8_t action)
 
     switch((Failsafe_Action)action) {
         case Failsafe_Action_Surface:
-            set_mode(Mode::Number::SURFACE, ModeReason::BATTERY_FAILSAFE);
+            arming.disarm(AP_Arming::Method::BATTERYFAILSAFE);
             break;
         case Failsafe_Action_Disarm:
             arming.disarm(AP_Arming::Method::BATTERYFAILSAFE);
@@ -297,7 +291,7 @@ void Sub::failsafe_leak_check()
 
     // Handle failsafe action
     if (failsafe.leak && g.failsafe_leak == FS_LEAK_SURFACE && motors.armed()) {
-        set_mode(Mode::Number::SURFACE, ModeReason::LEAK_FAILSAFE);
+        arming.disarm(AP_Arming::Method::FAILSAFE_ACTION_TERMINATE);
     }
 }
 
@@ -353,14 +347,8 @@ void Sub::failsafe_gcs_check()
     // handle failsafe action
     if (g.failsafe_gcs == FS_GCS_DISARM) {
         arming.disarm(AP_Arming::Method::GCSFAILSAFE);
-    } else if (g.failsafe_gcs == FS_GCS_HOLD && motors.armed()) {
-        if (!set_mode(Mode::Number::ALT_HOLD, ModeReason::GCS_FAILSAFE)) {
-            arming.disarm(AP_Arming::Method::GCS_FAILSAFE_HOLDFAILED);
-        }
-    } else if (g.failsafe_gcs == FS_GCS_SURFACE && motors.armed()) {
-        if (!set_mode(Mode::Number::SURFACE, ModeReason::GCS_FAILSAFE)) {
-            arming.disarm(AP_Arming::Method::GCS_FAILSAFE_SURFACEFAILED);
-        }
+    } else if ((g.failsafe_gcs == FS_GCS_HOLD || g.failsafe_gcs == FS_GCS_SURFACE) && motors.armed()) {
+        arming.disarm(AP_Arming::Method::GCSFAILSAFE);
     }
 }
 
@@ -382,7 +370,7 @@ void Sub::failsafe_crash_check()
     }
 
     // return immediately if we are not in an angle stabilized flight mode
-    if (control_mode == Mode::Number::ACRO || control_mode == Mode::Number::MANUAL) {
+    if (control_mode == Mode::Number::MANUAL) {
         last_crash_check_pass_ms = tnow;
         failsafe.crash = false;
         return;
@@ -422,85 +410,6 @@ void Sub::failsafe_crash_check()
     }
 }
 
-// executes terrain failsafe if data is missing for longer than a few seconds
-//  missing_data should be set to true if the vehicle failed to navigate because of missing data, false if navigation is proceeding successfully
-void Sub::failsafe_terrain_check()
-{
-    // trigger with 5 seconds of failures while in AUTO mode
-    bool valid_mode = (control_mode == Mode::Number::AUTO || control_mode == Mode::Number::GUIDED);
-    bool timeout = (failsafe.terrain_last_failure_ms - failsafe.terrain_first_failure_ms) > FS_TERRAIN_TIMEOUT_MS;
-    bool trigger_event = valid_mode && timeout;
-
-    // check for clearing of event
-    if (trigger_event != failsafe.terrain) {
-        if (trigger_event) {
-            gcs().send_text(MAV_SEVERITY_CRITICAL,"Failsafe terrain triggered");
-            failsafe_terrain_on_event();
-        } else {
-            LOGGER_WRITE_ERROR(LogErrorSubsystem::FAILSAFE_TERRAIN, LogErrorCode::ERROR_RESOLVED);
-            failsafe.terrain = false;
-        }
-    }
-}
-
-// This gets called if mission items are in ALT_ABOVE_TERRAIN frame
-// Terrain failure occurs when terrain data is not found, or rangefinder is not enabled or healthy
-// set terrain data status (found or not found)
-void Sub::failsafe_terrain_set_status(bool data_ok)
-{
-    uint32_t now = AP_HAL::millis();
-
-    // record time of first and latest failures (i.e. duration of failures)
-    if (!data_ok) {
-        failsafe.terrain_last_failure_ms = now;
-        if (failsafe.terrain_first_failure_ms == 0) {
-            failsafe.terrain_first_failure_ms = now;
-        }
-    } else {
-        // failures cleared after 0.1 seconds of persistent successes
-        if (now - failsafe.terrain_last_failure_ms > 100) {
-            failsafe.terrain_last_failure_ms = 0;
-            failsafe.terrain_first_failure_ms = 0;
-        }
-    }
-}
-
-// terrain failsafe action
-void Sub::failsafe_terrain_on_event()
-{
-    failsafe.terrain = true;
-    LOGGER_WRITE_ERROR(LogErrorSubsystem::FAILSAFE_TERRAIN, LogErrorCode::FAILSAFE_OCCURRED);
-
-    // If rangefinder is enabled, we can recover from this failsafe
-    if (!rangefinder_state.enabled || !sub.mode_auto.auto_terrain_recover_start()) {
-        failsafe_terrain_act();
-    }
-
-
-}
-
-// Recovery failed, take action
-void Sub::failsafe_terrain_act()
-{
-    switch (g.failsafe_terrain) {
-    case FS_TERRAIN_HOLD:
-        if (!set_mode(Mode::Number::POSHOLD, ModeReason::TERRAIN_FAILSAFE)) {
-            set_mode(Mode::Number::ALT_HOLD, ModeReason::TERRAIN_FAILSAFE);
-        }
-        AP_Notify::events.failsafe_mode_change = 1;
-        break;
-
-    case FS_TERRAIN_SURFACE:
-        set_mode(Mode::Number::SURFACE, ModeReason::TERRAIN_FAILSAFE);
-        AP_Notify::events.failsafe_mode_change = 1;
-        break;
-
-    case FS_TERRAIN_DISARM:
-    default:
-        arming.disarm(AP_Arming::Method::TERRAINFAILSAFE);
-    }
-}
-
 #if AP_SUB_RC_ENABLED
 void Sub::set_failsafe_radio(bool b)
 {
@@ -535,7 +444,7 @@ void Sub::failsafe_radio_on_event()
     gcs().send_text(MAV_SEVERITY_WARNING, "RC Failsafe");
         switch(g.failsafe_throttle) {
         case FS_THR_SURFACE:
-            set_mode(Mode::Number::SURFACE, ModeReason::RADIO_FAILSAFE);
+            arming.disarm(AP_Arming::Method::RADIOFAILSAFE);
             break;
         case FS_THR_WARN:
             set_neutral_controls();

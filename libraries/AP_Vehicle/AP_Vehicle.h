@@ -27,66 +27,120 @@
 
 #include <AP_AHRS/AP_AHRS.h>
 #include <AP_AccelCal/AP_AccelCal.h>
+#if AP_AIRSPEED_ENABLED
 #include <AP_Airspeed/AP_Airspeed.h>
+#endif
 #include <AP_Baro/AP_Baro.h>
 #include <AP_BoardConfig/AP_BoardConfig.h>     // board configuration library
+#if HAL_NUM_CAN_IFACES
 #include <AP_CANManager/AP_CANManager.h>
+#endif
+#if HAL_BUTTON_ENABLED
 #include <AP_Button/AP_Button.h>
+#endif
 #include <AP_Compass/AP_Compass.h>
+#if HAL_EFI_ENABLED
 #include <AP_EFI/AP_EFI.h>
+#endif
+#if AP_EXTERNAL_CONTROL_ENABLED
 #include <AP_ExternalControl/AP_ExternalControl_config.h>
+#endif
 #include <AP_GPS/AP_GPS.h>
+#if HAL_GENERATOR_ENABLED
 #include <AP_Generator/AP_Generator.h>
+#endif
 #include <AP_Logger/AP_Logger.h>
 #include <AP_InertialSensor/AP_InertialSensor.h>
 #include <AP_Notify/AP_Notify.h>                    // Notify library
 #include <AP_Param/AP_Param.h>
+#if AP_RANGEFINDER_ENABLED
 #include <AP_RangeFinder/AP_RangeFinder.h>
+#endif
 #include <AP_Relay/AP_Relay.h>                      // APM relay
 #include <AP_RSSI/AP_RSSI.h>                        // RSSI Library
 #include <AP_Scheduler/AP_Scheduler.h>
 #include <AP_SerialManager/AP_SerialManager.h>      // Serial manager library
 #include <AP_ServoRelayEvents/AP_ServoRelayEvents.h>
+#if AP_OPENDRONEID_ENABLED
 #include <AP_OpenDroneID/AP_OpenDroneID.h>
+#endif
+#if HAL_HOTT_TELEM_ENABLED
 #include <AP_Hott_Telem/AP_Hott_Telem.h>
+#endif
+#if HAL_WITH_ESC_TELEM
 #include <AP_ESC_Telem/AP_ESC_Telem.h>
+#endif
+#if AP_SERVO_TELEM_ENABLED
 #include <AP_Servo_Telem/AP_Servo_Telem.h>
+#endif
 #include <AP_GyroFFT/AP_GyroFFT.h>
+#if AP_NETWORKING_ENABLED
 #include <AP_Networking/AP_Networking.h>
+#endif
+#if HAL_VISUALODOM_ENABLED
 #include <AP_VisualOdom/AP_VisualOdom.h>
+#endif
+#if AP_VIDEOTX_ENABLED
 #include <AP_VideoTX/AP_VideoTX.h>
+#endif
+#if HAL_MSP_ENABLED
 #include <AP_MSP/AP_MSP.h>
+#endif
+#if AP_FRSKY_TELEM_ENABLED
 #include <AP_Frsky_Telem/AP_Frsky_Parameters.h>
+#endif
+#if AP_EXTERNAL_AHRS_ENABLED
 #include <AP_ExternalAHRS/AP_ExternalAHRS.h>
+#endif
+#if AP_VIDEOTX_ENABLED
 #include <AP_VideoTX/AP_SmartAudio.h>
 #include <AP_VideoTX/AP_Tramp.h>
+#endif
+#if AP_TEMPERATURE_SENSOR_ENABLED
 #include <AP_TemperatureSensor/AP_TemperatureSensor.h>
+#endif
+#if CONFIG_HAL_BOARD == HAL_BOARD_SITL
 #include <SITL/SITL.h>
+#endif
 #include <AP_CustomRotations/AP_CustomRotations.h>
+#if AP_AIS_ENABLED
 #include <AP_AIS/AP_AIS.h>
+#endif
+#if HAL_NMEA_OUTPUT_ENABLED
 #include <AP_NMEA_Output/AP_NMEA_Output.h>
+#endif
+#if AP_FENCE_ENABLED
 #include <AC_Fence/AC_Fence.h>
+#endif
+#if AP_CHECK_FIRMWARE_ENABLED
 #include <AP_CheckFirmware/AP_CheckFirmware.h>
+#endif
 #include <Filter/LowPassFilter.h>
+#if AP_KDECAN_ENABLED
 #include <AP_KDECAN/AP_KDECAN.h>
+#endif
 #include <Filter/AP_Filter.h>
 #include <AP_Stats/AP_Stats.h>              // statistics library
+#if AP_DDS_ENABLED
 #include <AP_DDS/AP_DDS_config.h>
+#endif
 #if AP_SCRIPTING_ENABLED
 #include <AP_Scripting/AP_Scripting.h>
 #endif
 
-#include <AP_Gripper/AP_Gripper_config.h>
 #if AP_GRIPPER_ENABLED
+#include <AP_Gripper/AP_Gripper_config.h>
 #include <AP_Gripper/AP_Gripper.h>
 #endif
 
-#include <AP_RPM/AP_RPM_config.h>
 #if AP_RPM_ENABLED
+#include <AP_RPM/AP_RPM_config.h>
 #include <AP_RPM/AP_RPM.h>
 #endif
 
+#if AP_IBUS_TELEM_ENABLED
 #include <AP_IBus_Telem/AP_IBus_Telem.h>
+#endif
 
 class AP_DDS_Client;
 

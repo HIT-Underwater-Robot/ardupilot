@@ -5,29 +5,41 @@
 #include "AP_Vehicle.h"
 #include <AP_InertialSensor/AP_InertialSensor_rate_config.h>
 
-#include <AP_BLHeli/AP_BLHeli.h>
 #include <AP_Common/AP_FWVersion.h>
 #include <AP_Arming/AP_Arming.h>
+#if HAL_WITH_FRSKY_TELEM_BIDIRECTIONAL
 #include <AP_Frsky_Telem/AP_Frsky_Parameters.h>
+#endif
 #include <AP_Logger/AP_Logger.h>
+#if AP_MISSION_ENABLED
 #include <AP_Mission/AP_Mission.h>
+#endif
+#if OSD_ENABLED
 #include <AP_OSD/AP_OSD.h>
+#endif
 #include <SRV_Channel/SRV_Channel.h>
 #include <AP_Motors/AP_Motors.h>
+#if APM_BUILD_TYPE(APM_BUILD_Rover)
 #include <AR_Motors/AP_MotorsUGV.h>
-#include <AP_CheckFirmware/AP_CheckFirmware.h>
+#endif
 #include <GCS_MAVLink/GCS.h>
 #if CONFIG_HAL_BOARD == HAL_BOARD_CHIBIOS
 #include <AP_HAL_ChibiOS/sdcard.h>
 #include <AP_HAL_ChibiOS/hwdef/common/stm32_util.h>
 #endif
+#if AP_DDS_ENABLED
 #include <AP_DDS/AP_DDS_Client.h>
+#endif
 #if HAL_WITH_IO_MCU
 #include <AP_IOMCU/AP_IOMCU.h>
 extern AP_IOMCU iomcu;
 #endif
+#if AP_SCRIPTING_ENABLED
 #include <AP_Scripting/AP_Scripting.h>
+#endif
+#if AP_SIM_ENABLED
 #include <SITL/SITL.h>
+#endif
 
 #define SCHED_TASK(func, rate_hz, max_time_micros, prio) SCHED_TASK_CLASS(AP_Vehicle, &vehicle, func, rate_hz, max_time_micros, prio)
 

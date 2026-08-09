@@ -70,7 +70,9 @@
 #endif
 
 #ifndef AP_FILESYSTEM_MISSION_ENABLED
+#ifndef AP_MISSION_ENABLED
 #include <AP_Mission/AP_Mission_config.h>
+#endif
 #define AP_FILESYSTEM_MISSION_ENABLED AP_MISSION_ENABLED
 #endif
 

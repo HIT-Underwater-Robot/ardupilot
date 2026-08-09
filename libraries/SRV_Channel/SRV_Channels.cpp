@@ -24,7 +24,9 @@
 
 #include "SRV_Channel.h"
 #include <AP_Logger/AP_Logger.h>
+#if AP_KDECAN_ENABLED
 #include <AP_KDECAN/AP_KDECAN.h>
+#endif
 
 #if HAL_MAX_CAN_PROTOCOL_DRIVERS
   #include <AP_CANManager/AP_CANManager.h>

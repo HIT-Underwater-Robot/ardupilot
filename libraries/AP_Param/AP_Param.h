@@ -28,7 +28,9 @@
 #include <AP_HAL/AP_HAL.h>
 #include <AP_HAL/utility/RingBuffer.h>
 #include <StorageManager/StorageManager.h>
+#ifndef AP_SCRIPTING_ENABLED
 #include <AP_Scripting/AP_Scripting_config.h>
+#endif
 
 #include "AP_Param_config.h"
 

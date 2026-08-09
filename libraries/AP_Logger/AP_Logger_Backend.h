@@ -7,7 +7,9 @@
 #include <AP_Common/Bitmask.h>
 #include <AP_Param/AP_Param.h>
 #include <GCS_MAVLink/GCS_MAVLink.h>
+#if AP_MISSION_ENABLED
 #include <AP_Mission/AP_Mission.h>
+#endif
 #include <AP_Vehicle/ModeReason.h>
 #include "LogStructure.h"
 
@@ -126,7 +128,9 @@ public:
 
     bool Write_RTC();
 
+#if AP_MISSION_ENABLED
     bool Write_EntireMission();
+#endif
     bool Write_RallyPoint(uint8_t total,
                           uint8_t sequence,
                           const class RallyLocation &rally_point);
@@ -142,9 +146,11 @@ public:
     bool Write_Message(const char *message);
     bool Write_MessageF(const char *fmt, ...);
     bool Write_MessageChunk(uint8_t id, const char *messagechunk, uint8_t chunk_seq);
+#if AP_MISSION_ENABLED
     bool Write_Mission_Cmd(const AP_Mission &mission,
                            const AP_Mission::Mission_Command &cmd,
                            LogMessages id);
+#endif
     bool Write_Mode(uint8_t mode, const ModeReason reason);
     bool Write_Parameter(const char *name, float value, float default_val);
     bool Write_Parameter(const AP_Param *ap,

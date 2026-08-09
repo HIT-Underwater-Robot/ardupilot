@@ -7,7 +7,6 @@
 #include "DerivativeFilter.h"
 #include "FilterWithBuffer.h"
 #include "LowPassFilter.h"
-#include "ModeFilter.h"
 #include "Butter.h"
 
 /*
@@ -17,4 +16,3 @@
   This should be incremented on significant filtering changes
  */
 #define AP_FILTER_VERSION 3
-

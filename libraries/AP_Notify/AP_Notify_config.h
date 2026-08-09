@@ -6,8 +6,12 @@
 #if HAL_GCS_ENABLED
 #include <GCS_MAVLink/GCS_MAVLink.h>
 #endif
-#include <AP_SerialLED/AP_SerialLED_config.h>
+#ifndef AP_SERIALLED_ENABLED
+#define AP_SERIALLED_ENABLED 0
+#endif
+#ifndef AP_SCRIPTING_ENABLED
 #include <AP_Scripting/AP_Scripting_config.h>
+#endif
 
 #ifndef AP_NOTIFY_DISCRETE_RGB_ENABLED
 #define AP_NOTIFY_DISCRETE_RGB_ENABLED 0

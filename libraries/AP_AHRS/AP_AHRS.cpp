@@ -27,8 +27,9 @@
 #include "AP_AHRS.h"
 #include "AP_AHRS_View.h"
 #include <AP_BoardConfig/AP_BoardConfig.h>
+#if AP_EXTERNAL_AHRS_ENABLED
 #include <AP_ExternalAHRS/AP_ExternalAHRS.h>
-#include <AP_Module/AP_Module.h>
+#endif
 #include <AP_GPS/AP_GPS.h>
 #include <AP_Baro/AP_Baro.h>
 #include <AP_Compass/AP_Compass.h>
@@ -40,7 +41,9 @@
 #include <AP_InertialSensor/AP_InertialSensor.h>
 #include <AP_CustomRotations/AP_CustomRotations.h>
 
+#ifndef AP_MISSION_ENABLED
 #include <AP_Mission/AP_Mission_config.h>
+#endif
 #if AP_MISSION_ENABLED
 #include <AP_Mission/AP_Mission.h>
 #endif
@@ -516,7 +519,6 @@ void AP_AHRS::update(bool skip_ins_update)
 
 #if AP_MODULE_SUPPORTED
     // call AHRS_update hook if any
-    AP_Module::call_hook_AHRS_update(*this);
 #endif
 
     // push gyros if optical flow present

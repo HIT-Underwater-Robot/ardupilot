@@ -11,19 +11,41 @@
 #include <AP_Math/AP_Math.h>
 #include <AP_Common/Bitmask.h>
 
+#if HAL_SPRAYER_ENABLED
 #include <AC_Sprayer/AC_Sprayer_config.h>
+#endif
+#if AP_AIRSPEED_ENABLED
 #include <AP_Airspeed/AP_Airspeed_config.h>
+#endif
+#if AP_CAMERA_ENABLED
 #include <AP_Camera/AP_Camera_config.h>
+#endif
 #include <AP_Compass/AP_Compass_config.h>
+#if AP_GRIPPER_ENABLED
 #include <AP_Gripper/AP_Gripper_config.h>
+#endif
+#if AP_OPTICALFLOW_ENABLED
 #include <AP_OpticalFlow/AP_OpticalFlow_config.h>
+#endif
+#if HAL_PARACHUTE_ENABLED
 #include <AP_Parachute/AP_Parachute_config.h>
+#endif
+#if AP_RANGEFINDER_ENABLED
 #include <AP_RangeFinder/AP_RangeFinder_config.h>
+#endif
 #include <AP_ServoRelayEvents/AP_ServoRelayEvents_config.h>
+#if HAL_TORQEEDO_ENABLED
 #include <AP_Torqeedo/AP_Torqeedo_config.h>
+#endif
+#if HAL_VISUALODOM_ENABLED
 #include <AP_VisualOdom/AP_VisualOdom_config.h>
+#endif
+#if AP_WINCH_ENABLED
 #include <AP_Winch/AP_Winch_config.h>
+#endif
+#if AP_VIDEOTX_ENABLED
 #include <AP_VideoTX/AP_VideoTX_config.h>
+#endif
 #include <AP_Arming/AP_Arming_config.h>
 #include <AP_BattMonitor/AP_BattMonitor_config.h>
 
@@ -256,9 +278,11 @@ public:
         SOARING =             88, // three-position switch to set soaring mode
         LANDING_FLARE =       89, // force flare, throttle forced idle, pitch to LAND_PITCH_DEG, tilts up
         EKF_SOURCE_SET =      90, // change EKF data source set between primary, secondary and tertiary
+#if AP_AIRSPEED_ENABLED
 #if AP_AIRSPEED_AUTOCAL_ENABLE
         ARSPD_CALIBRATE=      91, // calibrate airspeed ratio 
 #endif  // AP_AIRSPEED_AUTOCAL_ENABLE
+#endif  // AP_AIRSPEED_ENABLED
         FBWA =                92, // Fly-By-Wire-A
 #if AP_MISSION_ENABLED
         RELOCATE_MISSION =    93, // used in separate branch MISSION_RELATIVE
@@ -369,9 +393,11 @@ public:
         AUTOLAND =           183,  //Fixed Wing AUTOLAND Mode
         SYSTEMID =           184,  // system ID as an aux switch
         MOUNT_RP_LOCK =      185,  // mount lock modes for roll and pitch axes, for all mounts that support it
+#if HAL_MOUNT_ENABLED
 #if AP_MOUNT_POI_LOCK_ENABLED
         MOUNT_POI_LOCK =     186,  // Lock mount target to current ROI seen and switch mount to GPS Targeting mode
 #endif  // AP_MOUNT_POI_LOCK_ENABLED
+#endif  // HAL_MOUNT_ENABLED
         // inputs from 200 will eventually used to replace RCMAP
         ROLL =               201, // roll input
         PITCH =              202, // pitch input

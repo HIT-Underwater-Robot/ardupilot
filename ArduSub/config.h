@@ -230,9 +230,8 @@
 # define FLIGHT_MODE_4 Mode::Number::STABILIZE
 #endif
 #ifndef FLIGHT_MODE_5
-# define FLIGHT_MODE_5 Mode::Number::SURFACE
+# define FLIGHT_MODE_5 Mode::Number::MANUAL
 #endif
 #ifndef FLIGHT_MODE_6
-# define FLIGHT_MODE_6 Mode::Number::SURFACE
+# define FLIGHT_MODE_6 Mode::Number::STABILIZE
 #endif
-

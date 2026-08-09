@@ -25,7 +25,9 @@
 #include <inttypes.h>
 
 #include <AP_Math/AP_Math.h>
+#if AP_EXTERNAL_AHRS_ENABLED
 #include <AP_ExternalAHRS/AP_ExternalAHRS.h>
+#endif
 
 #include "AP_InertialSensor.h"
 

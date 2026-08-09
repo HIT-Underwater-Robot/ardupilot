@@ -1,5 +1,6 @@
 #pragma once
 
+#include <AP_HAL/AP_HAL_Boards.h>
 #include <AP_Common/AP_Common.h>
 
 // if you add any new types, units or multipliers, please update README.md
@@ -125,33 +126,115 @@ const struct MultiplierStructure log_Multipliers[] = {
 #define HEAD_BYTE1  0xA3    // Decimal 163
 #define HEAD_BYTE2  0x95    // Decimal 149
 
+#if AP_BEACON_ENABLED
 #include <AP_Beacon/LogStructure.h>
+#else
+#define LOG_IDS_FROM_BEACON LOG_UNUSED_BEACON_MSG
+#define LOG_STRUCTURE_FROM_BEACON
+#endif
 #include <AP_DAL/LogStructure.h>
-#include <AP_NavEKF2/LogStructure.h>
+#define LOG_IDS_FROM_NAVEKF2 \
+    LOG_NKF0_MSG, \
+    LOG_NKF1_MSG, \
+    LOG_NKF2_MSG, \
+    LOG_NKF3_MSG, \
+    LOG_NKF4_MSG, \
+    LOG_NKF5_MSG, \
+    LOG_NKQ_MSG, \
+    LOG_NKT_MSG, \
+    LOG_NKY0_MSG, \
+    LOG_NKY1_MSG
+#define LOG_STRUCTURE_FROM_NAVEKF2
 #include <AP_NavEKF3/LogStructure.h>
 #include <AP_GPS/LogStructure.h>
 #include <AP_NavEKF/LogStructure.h>
 #include <AP_BattMonitor/LogStructure.h>
 #include <AP_InertialSensor/LogStructure.h>
 #include <AP_AHRS/LogStructure.h>
+#if AP_CAMERA_ENABLED
 #include <AP_Camera/LogStructure.h>
+#else
+#define LOG_IDS_FROM_CAMERA LOG_UNUSED_CAMERA_MSG
+#define LOG_STRUCTURE_FROM_CAMERA
+#endif
+#if HAL_MOUNT_ENABLED
 #include <AP_Mount/LogStructure.h>
+#else
+#define LOG_IDS_FROM_MOUNT LOG_UNUSED_MOUNT_MSG
+#define LOG_STRUCTURE_FROM_MOUNT
+#endif
 #include <AP_Baro/LogStructure.h>
+#if HAL_NUM_CAN_IFACES
 #include <AP_CANManager/LogStructure.h>
+#else
+#define LOG_IDS_FROM_CANMANAGER LOG_UNUSED_CANMANAGER_MSG
+#define LOG_STRUCTURE_FROM_CANMANAGER
+#endif
+#if HAL_VISUALODOM_ENABLED
 #include <AP_VisualOdom/LogStructure.h>
+#else
+#define LOG_IDS_FROM_VISUALODOM LOG_UNUSED_VISUALODOM_MSG
+#define LOG_STRUCTURE_FROM_VISUALODOM
+#endif
+#if AC_PRECLAND_ENABLED
 #include <AC_PrecLand/LogStructure.h>
+#else
+#define LOG_IDS_FROM_PRECLAND LOG_UNUSED_PRECLAND_MSG
+#define LOG_STRUCTURE_FROM_PRECLAND
+#endif
+#if HAL_PROXIMITY_ENABLED
 #include <AP_Proximity/LogStructure.h>
+#else
+#define LOG_IDS_FROM_PROXIMITY LOG_UNUSED_PROXIMITY_MSG
+#define LOG_STRUCTURE_FROM_PROXIMITY
+#endif
+#if AP_FENCE_ENABLED
 #include <AC_Avoidance/LogStructure.h>
+#else
+#define LOG_IDS_FROM_AVOIDANCE LOG_UNUSED_AVOIDANCE_MSG
+#define LOG_STRUCTURE_FROM_AVOIDANCE
+#endif
+#if HAL_WITH_ESC_TELEM
 #include <AP_ESC_Telem/LogStructure.h>
+#else
+#define LOG_IDS_FROM_ESC_TELEM LOG_UNUSED_ESC_TELEM_MSG
+#define LOG_STRUCTURE_FROM_ESC_TELEM
+#endif
+#if AP_AIS_ENABLED
 #include <AP_AIS/LogStructure.h>
+#else
+#define LOG_IDS_FROM_AIS LOG_UNUSED_AIS_MSG
+#define LOG_STRUCTURE_FROM_AIS
+#endif
 #include <AP_HAL_ChibiOS/LogStructure.h>
+#if AP_RPM_ENABLED
 #include <AP_RPM/LogStructure.h>
+#else
+#define LOG_IDS_FROM_RPM LOG_UNUSED_RPM_MSG
+#define LOG_STRUCTURE_FROM_RPM
+#endif
+#if AP_FENCE_ENABLED
 #include <AC_Fence/LogStructure.h>
-#include <AP_Landing/LogStructure.h>
+#else
+#define LOG_IDS_FROM_FENCE LOG_UNUSED_FENCE_MSG
+#define LOG_STRUCTURE_FROM_FENCE
+#endif
+#define LOG_IDS_FROM_LANDING LOG_UNUSED_LANDING_MSG
+#define LOG_STRUCTURE_FROM_LANDING
 #include <AC_AttitudeControl/LogStructure.h>
 #include <AP_HAL/LogStructure.h>
+#if AP_MISSION_ENABLED
 #include <AP_Mission/LogStructure.h>
+#else
+#define LOG_IDS_FROM_MISSION LOG_UNUSED_MISSION_MSG
+#define LOG_STRUCTURE_FROM_MISSION
+#endif
+#if AP_SERVO_TELEM_ENABLED
 #include <AP_Servo_Telem/LogStructure.h>
+#else
+#define LOG_IDS_FROM_SERVO_TELEM LOG_UNUSED_SERVO_TELEM_MSG
+#define LOG_STRUCTURE_FROM_SERVO_TELEM
+#endif
 
 #include <AP_RTC/AP_RTC_config.h>
 

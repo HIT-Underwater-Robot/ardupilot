@@ -4,7 +4,9 @@
 #include <AP_HAL/AP_HAL.h>
 #include <AP_Common/AP_Common.h>
 #include <AP_RCProtocol/AP_RCProtocol.h>
+#if defined(HAL_WITH_BIDIR_DSHOT) && HAL_WITH_ESC_TELEM
 #include <AP_ESC_Telem/AP_ESC_Telem.h>
+#endif
 
 #include "hal.h"
 #include "ch.h"

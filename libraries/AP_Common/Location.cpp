@@ -7,7 +7,9 @@
 #ifndef HAL_BOOTLOADER_BUILD
 
 #include <AP_AHRS/AP_AHRS.h>
+#if AP_TERRAIN_AVAILABLE
 #include <AP_Terrain/AP_Terrain.h>
+#endif
 
 const Location definitely_zero{};
 bool Location::is_zero(void) const

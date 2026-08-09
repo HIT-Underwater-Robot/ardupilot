@@ -10,8 +10,12 @@
 #include <AP_Math/AP_Math.h>
 #include <AP_Param/AP_Param.h>
 #include <GCS_MAVLink/GCS_MAVLink.h>
+#if HAL_MSP_SENSORS_ENABLED
 #include <AP_MSP/msp.h>
+#endif
+#if AP_EXTERNAL_AHRS_ENABLED
 #include <AP_ExternalAHRS/AP_ExternalAHRS.h>
+#endif
 
 #include "AP_Compass_Backend.h"
 #include "Compass_PerMotor.h"

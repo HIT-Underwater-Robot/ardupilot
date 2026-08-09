@@ -11,41 +11,18 @@
 #include <AP_BoardConfig/AP_BoardConfig.h>
 #include <AP_Logger/AP_Logger.h>
 #include <AP_Vehicle/AP_Vehicle_Type.h>
+#if AP_EXTERNAL_AHRS_ENABLED
 #include <AP_ExternalAHRS/AP_ExternalAHRS.h>
+#endif
 #include <AP_CustomRotations/AP_CustomRotations.h>
 #include <GCS_MAVLink/GCS.h>
 #include <AP_AHRS/AP_AHRS.h>
 
 #include "AP_Compass_config.h"
 
-#include "AP_Compass_SITL.h"
-#include "AP_Compass_AK8963.h"
 #include "AP_Compass_Backend.h"
-#include "AP_Compass_BMM150.h"
-#include "AP_Compass_BMM350.h"
 #include "AP_Compass_HMC5843.h"
-#include "AP_Compass_IIS2MDC.h"
-#include "AP_Compass_IST8308.h"
-#include "AP_Compass_IST8310.h"
 #include "AP_Compass_LSM303D.h"
-#include "AP_Compass_LSM9DS1.h"
-#include "AP_Compass_LIS3MDL.h"
-#include "AP_Compass_AK09916.h"
-#include "AP_Compass_QMC5883L.h"
-#if AP_COMPASS_DRONECAN_ENABLED
-#include "AP_Compass_DroneCAN.h"
-#endif
-#include "AP_Compass_QMC5883P.h"
-#include "AP_Compass_MMC3416.h"
-#include "AP_Compass_MMC5xx3.h"
-#include "AP_Compass_MAG3110.h"
-#include "AP_Compass_RM3100.h"
-#if AP_COMPASS_MSP_ENABLED
-#include "AP_Compass_MSP.h"
-#endif
-#if AP_COMPASS_EXTERNALAHRS_ENABLED
-#include "AP_Compass_ExternalAHRS.h"
-#endif
 #include "AP_Compass.h"
 #include "Compass_learn.h"
 #include <stdio.h>

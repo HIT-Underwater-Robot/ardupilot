@@ -14,7 +14,9 @@
 #include <AP_AccelCal/AP_AccelCal.h>
 #include <AP_HAL/utility/RingBuffer.h>
 #include <AP_Math/AP_Math.h>
+#if AP_EXTERNAL_AHRS_ENABLED
 #include <AP_ExternalAHRS/AP_ExternalAHRS.h>
+#endif
 #include <Filter/LowPassFilter.h>
 #include <Filter/HarmonicNotchFilter.h>
 #include <AP_SerialManager/AP_SerialManager_config.h>

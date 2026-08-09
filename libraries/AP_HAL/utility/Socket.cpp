@@ -17,7 +17,9 @@
  */
 
 #include <AP_HAL/AP_HAL.h>
+#ifndef AP_NETWORKING_SOCKETS_ENABLED
 #include <AP_Networking/AP_Networking_Config.h>
+#endif
 #if AP_NETWORKING_SOCKETS_ENABLED || defined(AP_SOCKET_NATIVE_ENABLED)
 
 #ifndef SOCKET_CLASS_NAME

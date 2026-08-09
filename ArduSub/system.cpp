@@ -47,10 +47,6 @@ void Sub::init_ardupilot()
     // setup telem slots with serial ports
     gcs().setup_uarts();
 
-#if AP_SUB_LEARNING_DEMOS_ENABLED
-    demo_dvl.init();
-#endif
-
     // initialise rc channels including setting mode
     rc().convert_options(RC_Channel::AUX_FUNC::ARMDISARM_UNUSED, RC_Channel::AUX_FUNC::ARMDISARM);
     rc().init();
@@ -138,13 +134,6 @@ void Sub::init_ardupilot()
 
     // initialise rangefinder
 #if AP_RANGEFINDER_ENABLED
-    init_rangefinder();
-#endif
-
-    // initialise mission library
-    mission.init();
-#if HAL_LOGGING_ENABLED
-    mission.set_log_start_mission_item_bit(MASK_LOG_CMD);
 #endif
 
     // initialise AP_Logger library
@@ -196,81 +185,6 @@ void Sub::startup_INS_ground()
     ahrs.reset();
 }
 
-// calibrate gyros - returns true if successfully calibrated
-// position_ok - returns true if the horizontal absolute position is ok and home position is set
-bool Sub::position_ok()
-{
-    // return false if ekf failsafe has triggered
-    if (failsafe.ekf) {
-        return false;
-    }
-
-    // check ekf position estimate
-    return (ekf_position_ok() || optflow_position_ok());
-}
-
-// ekf_position_ok - returns true if the ekf claims it's horizontal absolute position estimate is ok and home position is set
-bool Sub::ekf_position_ok()
-{
-    if (!ahrs.have_inertial_nav()) {
-        // do not allow navigation with dcm position
-        return false;
-    }
-
-    // if disarmed we accept a predicted horizontal position
-    if (!motors.armed()) {
-        if (ahrs.has_status(AP_AHRS::Status::HORIZ_POS_ABS)) {
-            return true;
-        }
-        if (ahrs.has_status(AP_AHRS::Status::PRED_HORIZ_POS_ABS)) {
-            return true;
-        }
-        return false;
-    }
-
-    // once armed we require a good absolute position and EKF must not be in const_pos_mode
-    if (ahrs.has_status(AP_AHRS::Status::CONST_POS_MODE)) {
-        return false;
-    }
-    return ahrs.has_status(AP_AHRS::Status::HORIZ_POS_ABS);
-}
-
-// optflow_position_ok - returns true if optical flow based position estimate is ok
-bool Sub::optflow_position_ok()
-{
-    // return immediately if EKF not used
-    if (!ahrs.have_inertial_nav()) {
-        return false;
-    }
-
-    // return immediately if neither optflow nor visual odometry is enabled
-    bool enabled = false;
-#if AP_OPTICALFLOW_ENABLED
-    if (optflow.enabled()) {
-        enabled = true;
-    }
-#endif
-#if HAL_VISUALODOM_ENABLED
-    if (visual_odom.enabled()) {
-        enabled = true;
-    }
-#endif
-    if (!enabled) {
-        return false;
-    }
-
-    // if disarmed we accept a predicted horizontal relative position
-    if (!motors.armed()) {
-        return ahrs.has_status(AP_AHRS::Status::PRED_HORIZ_POS_REL);
-    }
-
-    if (ahrs.has_status(AP_AHRS::Status::CONST_POS_MODE)) {
-        return false;
-    }
-
-    return ahrs.has_status(AP_AHRS::Status::HORIZ_POS_REL);
-}
-
 #if HAL_LOGGING_ENABLED
 /*
   should we log a message type now?
@@ -282,9 +196,12 @@ bool Sub::should_log(uint32_t mask)
 }
 #endif
 
+#if AP_ADVANCEDFAILSAFE_ENABLED
 #include <AP_AdvancedFailsafe/AP_AdvancedFailsafe.h>
+#endif
+#if AP_ADSB_AVOIDANCE_ENABLED
 #include <AP_Avoidance/AP_Avoidance.h>
-#include <AP_ADSB/AP_ADSB.h>
+#endif
 
 // dummy method to avoid linking AFS
 #if AP_ADVANCEDFAILSAFE_ENABLED

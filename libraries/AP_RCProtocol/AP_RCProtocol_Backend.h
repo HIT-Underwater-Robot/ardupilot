@@ -22,7 +22,6 @@
 #if AP_RCPROTOCOL_ENABLED
 
 #include <AP_HAL/utility/sparse-endian.h>
-#include <AP_VideoTX/AP_VideoTX_config.h>
 
 class AP_RCProtocol_Backend {
     friend class AP_RCProtcol;

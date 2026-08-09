@@ -8,7 +8,6 @@
 
 #include "AP_Arming_config.h"
 #include "AP_InertialSensor/AP_InertialSensor_config.h"
-#include "AP_Proximity/AP_Proximity_config.h"
 
 class AP_Arming {
 public:

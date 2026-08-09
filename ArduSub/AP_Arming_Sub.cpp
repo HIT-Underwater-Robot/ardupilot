@@ -194,9 +194,6 @@ bool AP_Arming_Sub::disarm(const AP_Arming::Method method, bool do_disarm_checks
     // send disarm command to motors
     sub.motors.armed(false);
 
-    // reset the mission
-    sub.mission.reset();
-
 #if HAL_LOGGING_ENABLED
     AP::logger().set_vehicle_armed(false);
 #endif

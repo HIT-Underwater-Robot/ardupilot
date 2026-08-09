@@ -24,7 +24,6 @@
 #include <RC_Channel/RC_Channel.h>
 #include <AP_Vehicle/AP_Vehicle_Type.h>
 #include <AP_Logger/AP_Logger.h>
-#include <AP_VideoTX/AP_VideoTX_config.h>
 
 // for video TX configuration:
 #if AP_VIDEOTX_ENABLED

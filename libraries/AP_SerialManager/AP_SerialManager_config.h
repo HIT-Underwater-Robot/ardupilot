@@ -20,7 +20,9 @@
 #pragma once
 
 #include <AP_HAL/AP_HAL_Boards.h>
+#ifndef AP_NETWORKING_ENABLED
 #include <AP_Networking/AP_Networking_Config.h>
+#endif
 #include <AP_InertialSensor/AP_InertialSensor_config.h>
 
 #ifdef HAL_UART_NUM_SERIAL_PORTS

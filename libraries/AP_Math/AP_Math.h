@@ -11,7 +11,6 @@
 #include "definitions.h"
 #include "crc.h"
 #include "matrix3.h"
-#include "polygon.h"
 #include "quaternion.h"
 #include "rotations.h"
 #include "vector2.h"

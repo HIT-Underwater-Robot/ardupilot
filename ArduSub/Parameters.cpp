@@ -1,7 +1,5 @@
 #include "Sub.h"
 
-#include <AP_Gripper/AP_Gripper.h>
-
 /*
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -116,7 +114,7 @@ const AP_Param::Info Sub::var_info[] = {
     // @Param: FLTMODE1
     // @DisplayName: Flight Mode 1
     // @Description: Flight mode when pwm of Flightmode channel(FLTMODE_CH) is <= 1230
-    // @Values: 0:Stabilize,1:Acro,2:AltHold,3:Auto,4:Guided,7:Circle,9:Surface,16:PosHold,19:Manual,20:Motor Detect,21:SurfTrak,22:Precision Manual Demo,23:SMC Stabilize Demo
+    // @Values: 0:Stabilize,19:Manual
     // @User: Standard
     GSCALAR(flight_mode1, "FLTMODE1",               (uint8_t)FLIGHT_MODE_1),
 
@@ -185,13 +183,6 @@ const AP_Param::Info Sub::var_info[] = {
     // @User: Standard
     // @Increment: 0.01
     GSCALAR(surface_max_throttle, "SURFACE_MAX_THR", 0.1f),
-
-    // @Param: FS_TERRAIN_ENAB
-    // @DisplayName: Terrain Failsafe Enable
-    // @Description: Controls what action to take if terrain information is lost during AUTO mode
-    // @Values: 0:Disarm, 1:Hold Position, 2:Surface
-    // @User: Standard
-    GSCALAR(failsafe_terrain, "FS_TERRAIN_ENAB", FS_TERRAIN_DISARM),
 
     // @Param: FS_PILOT_INPUT
     // @DisplayName: Pilot input failsafe action
@@ -551,27 +542,9 @@ const AP_Param::Info Sub::var_info[] = {
     // @Path: ../libraries/AP_InertialSensor/AP_InertialSensor.cpp
     GOBJECT(ins,            "INS", AP_InertialSensor),
 
-    // @Group: WP_
-    // @Path: ../libraries/AC_WPNav/AC_WPNav.cpp
-    GOBJECT(wp_nav, "WP_", AC_WPNav),
-
-    // @Group: LOIT_
-    // @Path: ../libraries/AC_WPNav/AC_Loiter.cpp
-    GOBJECT(loiter_nav, "LOIT_", AC_Loiter),
-
-#if CIRCLE_NAV_ENABLED
-    // @Group: CIRCLE_
-    // @Path: ../libraries/AC_WPNav/AC_Circle.cpp
-    GOBJECT(circle_nav, "CIRCLE_",  AC_Circle),
-#endif
-
     // @Group: ATC_
     // @Path: ../libraries/AC_AttitudeControl/AC_AttitudeControl.cpp,../libraries/AC_AttitudeControl/AC_AttitudeControl_Sub.cpp
     GOBJECT(attitude_control, "ATC_", AC_AttitudeControl_Sub),
-
-    // @Group: PSC
-    // @Path: ../libraries/AC_AttitudeControl/AC_PosControl.cpp
-    GOBJECT(pos_control, "PSC", AC_PosControl),
 
     // @Group: AHRS_
     // @Path: ../libraries/AP_AHRS/AP_AHRS.cpp
@@ -610,12 +583,6 @@ const AP_Param::Info Sub::var_info[] = {
     // @Group: BARO
     // @Path: ../libraries/AP_Baro/AP_Baro.cpp
     GOBJECT(barometer, "BARO", AP_Baro),
-
-#if AP_SUB_LEARNING_DEMOS_ENABLED
-    // @Group: DVL_
-    // @Path: demo_dvl.cpp
-    GOBJECT(demo_dvl, "DVL_", DemoDVL),
-#endif
 
     // GPS driver
     // @Group: GPS
@@ -664,10 +631,6 @@ const AP_Param::Info Sub::var_info[] = {
     // @Path: ../libraries/AP_NavEKF3/AP_NavEKF3.cpp
     GOBJECTN(ahrs.EKF3, NavEKF3, "EK3_", NavEKF3),
 #endif
-
-    // @Group: MIS_
-    // @Path: ../libraries/AP_Mission/AP_Mission.cpp
-    GOBJECT(mission, "MIS_",       AP_Mission),
 
 #if AP_RANGEFINDER_ENABLED
     // @Group: RNGFND
@@ -868,16 +831,6 @@ void Sub::load_parameters()
 
     // upgrade attitude controller parameters
     sub.attitude_control.convert_parameters();
-
-    // upgrade waypoint navigation parameters
-    wp_nav.convert_parameters();
-
-    // upgrade loiter navigation parameters
-    loiter_nav.convert_parameters();
-
-#if CIRCLE_NAV_ENABLED
-    circle_nav.convert_parameters();
-#endif
 
     // PARAMETER_CONVERSION - Added: Jan-2026
     // move ORIGIN_LAT, ORIGIN_LON, ORIGIN_ALT to AHRS

@@ -21,69 +21,31 @@
 
 #include "GCS.h"
 
-#include <AC_Fence/AC_Fence.h>
 #include <AP_Compass/AP_Compass.h>
-#include <AP_ADSB/AP_ADSB.h>
-#include <AP_AdvancedFailsafe/AP_AdvancedFailsafe.h>
 #include <AP_AHRS/AP_AHRS.h>
 #include <AP_HAL/AP_HAL.h>
 #include <AP_Arming/AP_Arming.h>
 #include <AP_InternalError/AP_InternalError.h>
 #include <AP_Logger/AP_Logger.h>
-#include <AP_OpticalFlow/AP_OpticalFlow.h>
 #include <AP_Vehicle/AP_Vehicle.h>
-#include <AP_RangeFinder/AP_RangeFinder.h>
-#include <AP_RangeFinder/AP_RangeFinder_Backend.h>
-#include <AP_Airspeed/AP_Airspeed.h>
-#include <AP_Camera/AP_Camera.h>
-#include <AP_Gripper/AP_Gripper.h>
-#include <AC_Sprayer/AC_Sprayer.h>
-#include <AP_BLHeli/AP_BLHeli.h>
 #include <AP_Relay/AP_Relay.h>
 #include <AP_RSSI/AP_RSSI.h>
 #include <AP_RTC/AP_RTC.h>
 #include <AP_Scheduler/AP_Scheduler.h>
 #include <AP_SerialManager/AP_SerialManager.h>
-#include <AP_RCTelemetry/AP_Spektrum_Telem.h>
-#include <AP_Mount/AP_Mount.h>
 #include <AP_Common/AP_FWVersion.h>
-#include <AP_VisualOdom/AP_VisualOdom.h>
 #include <AP_Baro/AP_Baro.h>
-#include <AP_EFI/AP_EFI.h>
-#include <AP_Proximity/AP_Proximity.h>
-#include <AP_Scripting/AP_Scripting.h>
 #include <SRV_Channel/SRV_Channel.h>
-#include <AP_Terrain/AP_Terrain.h>
-#include <AP_Winch/AP_Winch.h>
-#include <AP_Mission/AP_Mission.h>
-#include <AP_OpenDroneID/AP_OpenDroneID.h>
-#include <AP_OSD/AP_OSD.h>
-#include <AP_RCTelemetry/AP_CRSF_Telem.h>
-#include <AP_RPM/AP_RPM.h>
-#include <AP_AIS/AP_AIS.h>
 #include <AP_Filesystem/AP_Filesystem.h>
-#include <AP_Frsky_Telem/AP_Frsky_Telem.h>
 #include <RC_Channel/RC_Channel.h>
-#include <AP_VisualOdom/AP_VisualOdom.h>
-#include <AP_LandingGear/AP_LandingGear.h>
-#include <AP_Landing/AP_Landing_config.h>
-#include <AP_Generator/AP_Generator_Loweheiser.h>
-
-#include "MissionItemProtocol_Waypoints.h"
-#include "MissionItemProtocol_Rally.h"
-#include "MissionItemProtocol_Fence.h"
-
-#include <AP_CANManager/AP_MAVLinkCAN.h>
+#include "MissionItemProtocol.h"
 
 #include <AP_Notify/AP_Notify.h>
 #include <AP_Vehicle/AP_Vehicle_config.h>
 
 #include <stdio.h>
 
-#if AP_RADIO_ENABLED
-#include <AP_Radio/AP_Radio.h>
 #include <AP_BoardConfig/AP_BoardConfig.h>
-#endif
 
 #if CONFIG_HAL_BOARD == HAL_BOARD_SITL
 #include <SITL/SITL.h>
@@ -694,6 +656,7 @@ void GCS_MAVLINK::handle_mission_request(const mavlink_message_t &msg)
 
 // returns a MISSION_STATE numeration value best describing out
 // current mission state.
+#if AP_MISSION_ENABLED
 MISSION_STATE GCS_MAVLINK::mission_state(const AP_Mission &mission) const
 {
     if (!mission.present()) {
@@ -734,6 +697,7 @@ void GCS_MAVLINK::send_mission_current(const class AP_Mission &mission, uint16_t
         mission_state(mission), // mission_state
         mission_mode);  // mission_mode
 }
+#endif  // AP_MISSION_ENABLED
 
 #if AP_MAVLINK_MISSION_SET_CURRENT_ENABLED
 /*
@@ -2799,10 +2763,14 @@ void GCS::update_receive(void)
 
 void GCS::send_mission_item_reached_message(uint16_t mission_index)
 {
+#if AP_MISSION_ENABLED
     for (uint8_t i=0; i<num_gcs(); i++) {
         chan(i)->mission_item_reached_index = mission_index;
         chan(i)->send_message(MSG_MISSION_ITEM_REACHED);
     }
+#else
+    (void)mission_index;
+#endif
 }
 
 void GCS::setup_console()

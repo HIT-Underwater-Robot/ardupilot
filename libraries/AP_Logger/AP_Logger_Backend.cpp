@@ -9,7 +9,9 @@
 #include "AP_Common/AP_FWVersion.h"
 #include <AP_InternalError/AP_InternalError.h>
 #include <AP_Scheduler/AP_Scheduler.h>
+#if HAL_RALLY_ENABLED
 #include <AP_Rally/AP_Rally.h>
+#endif
 #include <AP_Vehicle/AP_Vehicle_Type.h>
 #include <Filter/Filter.h>
 #include "AP_Logger.h"

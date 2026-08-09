@@ -1,7 +1,9 @@
 #pragma once
 
 #include <AP_HAL/AP_HAL_Boards.h>
+#ifndef AP_SCRIPTING_ENABLED
 #include <AP_Scripting/AP_Scripting_config.h>
+#endif
 #include <SRV_Channel/SRV_Channel_config.h>
 
 #ifndef AP_MOTORS_MAX_NUM_MOTORS

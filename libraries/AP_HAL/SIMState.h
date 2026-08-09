@@ -1,8 +1,9 @@
 #pragma once
 
-#include <SITL/SITL.h>
+#include <AP_HAL/AP_HAL_Boards.h>
 
 #if AP_SIM_ENABLED
+#include <SITL/SITL.h>
 
 // this might move elsewhere?
 #ifndef AP_SIM_WIND_SIMULATION_ENABLED

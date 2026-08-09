@@ -5,36 +5,8 @@
 #include "AP_BattMonitor.h"
 
 #include "AP_BattMonitor_Analog.h"
-#include "AP_BattMonitor_SMBus.h"
-#include "AP_BattMonitor_SMBus_Solo.h"
-#include "AP_BattMonitor_SMBus_Generic.h"
-#include "AP_BattMonitor_SMBus_Maxell.h"
-#include "AP_BattMonitor_SMBus_Rotoye.h"
-#include "AP_BattMonitor_Bebop.h"
-#include "AP_BattMonitor_ESC.h"
-#include "AP_BattMonitor_SMBus_SUI.h"
-#include "AP_BattMonitor_SMBus_NeoDesign.h"
-#include "AP_BattMonitor_Sum.h"
-#include "AP_BattMonitor_FuelFlow.h"
-#include "AP_BattMonitor_FuelLevel_PWM.h"
-#include "AP_BattMonitor_Generator.h"
-#include "AP_BattMonitor_EFI.h"
-#include "AP_BattMonitor_INA2xx.h"
-#include "AP_BattMonitor_INA239.h"
-#include "AP_BattMonitor_INA3221.h"
-#include "AP_BattMonitor_LTC2946.h"
-#include "AP_BattMonitor_Torqeedo.h"
-#include "AP_BattMonitor_FuelLevel_Analog.h"
-#include "AP_BattMonitor_Synthetic_Current.h"
-#include "AP_BattMonitor_AD7091R5.h"
-#include "AP_BattMonitor_Scripting.h"
-#include "AP_BattMonitor_TIBQ76952.h"
 
 #include <AP_HAL/AP_HAL.h>
-
-#if HAL_ENABLE_DRONECAN_DRIVERS
-#include "AP_BattMonitor_DroneCAN.h"
-#endif
 
 #include <AP_Vehicle/AP_Vehicle_Type.h>
 #include <AP_Logger/AP_Logger.h>

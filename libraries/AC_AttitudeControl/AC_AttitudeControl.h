@@ -540,9 +540,6 @@ public:
     // scale I to represent the control given by angle P
     void scale_I_to_angle_P();
 
-    // write RATE message
-    void Write_Rate(const AC_PosControl &pos_control) const;
-
     // write ANG message
     void Write_ANG() const;
 

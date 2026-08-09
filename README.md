@@ -1,87 +1,47 @@
-# ArduSub 4.7.0 for Pixhawk-class flight controllers
+# ArduSub 4.7.0 Minimal Pixhawk1 Lab
 
-这是从官方 [ArduPilot](https://github.com/ArduPilot/ardupilot) 稳定标签 `Sub-4.7.0` 迁移出的 ArduSub 固件仓库。
+这是从官方 `Sub-4.7.0` 派生的**实验教学分支**。它不是主线固件，也不是完整 ArduSub 4.7.0：本分支只保留理解“手动输入—姿态闭环—6DOF 混控—Pixhawk1 输出”所必需的代码。
 
-本仓库保留完整的 `ArduSub/`、`libraries/` 和 `modules/`，不修改官方 4.7.0 飞控逻辑，不关闭 ArduSub 的编译功能。其他车辆源码、通用 CI、Docker、Vagrant、文档站点及与 ArduSub 固件构建无关的外部工具已移除。
+## 固定边界
 
-## 维护边界
+| 项目 | 本分支保留 | 本分支不提供 |
+|---|---|---|
+| 飞行模式 | `MANUAL`、`STABILIZE` | AltHold、PosHold、Guided、Auto、Surface、Motor Detect 等 |
+| 飞控板 | `Pixhawk1`（内部复用 `fmuv3` hwdef） | Pixhawk4、Cube、SITL、Linux 及其他板卡 |
+| 控制主线 | 驾驶输入、AHRS/EKF3、姿态/角速度控制、spool 状态机、`AP_Motors6DOF`、SRV/HAL/IOMCU | 位置/航点/任务/轨迹控制、自动导航和避障 |
+| 基本外设 | Pixhawk1 板载双 IMU、HMC5843/LSM303D、MS5611、模拟电池、u-blox GPS、IOMCU RC/PWM、漏水检测、MAVLink | CAN、DShot/ESC telemetry、Lua、OSD、camera/mount、rangefinder、terrain、optical flow、external AHRS 等 |
+| 工程资料 | `Sub_learning/` | 通用车辆、通用 SITL/autotest 平台和其他产品能力 |
 
-- 唯一车辆产品是 ArduSub，不引入 ArduPlane、ArduCopter、Rover 等其他车辆主线。
-- 目标硬件限定为 Pixhawk4、Pixhawk1 及同类 ChibiOS 实时飞控板；新板卡支持通过 HAL 和 `hwdef.dat` 完成。
-- SITL 仅用于 ArduSub 固件回归验证，不扩展为通用机器人仿真平台。
-- 固件必需的 MAVLink 协议、地面站通信和生成链继续保留。
-- 伴随计算机应用、中间件工作区、通用机器人集成和非 ArduSub 控制工具不属于本仓库维护范围。
-- 不自动跟随上游 `master`；任何升级都必须在独立分支审计 ArduSub 稳定版差异，并完成 SITL、目标板构建和回退验证。
+根目录 Waf 只递归 ArduSub，`./waf list_boards` 只应列出 `Pixhawk1`。`modules/` 仍是上游记录的 Git submodule，不在本分支内修改。
 
-## 获取源码
-
-必须同时初始化 Git 子模块：
-
-```bash
-git clone --recurse-submodules https://github.com/HIT-Underwater-Robot/ardupilot.git
-cd ardupilot
-```
-
-如果已经克隆但缺少子模块：
+## WSL 构建
 
 ```bash
-git submodule update --init --recursive
+./waf configure --board Pixhawk1 --out build_minimal_pixhawk1 --no-submodule-update
+./waf sub -j4
 ```
 
-## Ubuntu / WSL 编译环境
-
-首次使用时安装 ArduPilot 官方依赖：
-
-```bash
-Tools/environment_install/install-prereqs-ubuntu.sh -y
-. ~/.profile
-```
-
-不要使用 `sudo ./waf`。
-
-## 编译 Pixhawk4
-
-当前实际使用的飞控是 Pixhawk4；它在 Waf 中的板卡名称是 `Pixhawk4`：
-
-```bash
-./waf configure --board Pixhawk4
-./waf sub
-```
-
-固件输出位置：
+预期产物：
 
 ```text
-build/Pixhawk4/bin/ardusub.apj
+build_minimal_pixhawk1/Pixhawk1/bin/ardusub.apj
+build_minimal_pixhawk1/Pixhawk1/bin/ardusub_with_bl.hex
 ```
 
-如果以后需要兼容 Pixhawk 2.4.8，它对应的 Waf 板卡名称是 `Pixhawk1`。查询其他受支持板卡：
+禁止使用 `sudo ./waf`。本分支没有 SITL 目标，不要把 Pixhawk1 编译成功解释为控制算法、硬件 IO 或水下航行已经验证。
 
-```bash
-./waf list_boards
-```
+## 安全限制
 
-## 编译 SITL
+- 这是架构阅读和台架实验代码，**不得直接作为主线产品固件发布**。
+- 只保留两种模式后，原本请求 Surface/Hold 的部分 failsafe 已退化为 disarm；部署前必须逐项重新审计。
+- 参数和日志集合已经随功能裁剪，不能假定与官方完整 Sub-4.7.0 二进制兼容。
+- 任何 armed/推进器测试必须拆桨或物理隔离推进器，确认 safety、interlock、failsafe，并准备独立断电。
+- 尚未完成 Pixhawk1 实机烧录、传感器枚举、RC、PWM 方向、断链和漏水触发验证。
 
-```bash
-./waf configure --board sitl
-./waf sub
-```
+## 分支关系
 
-SITL 可执行文件输出位置：
+- `master`：团队长期维护的完整、审慎准入基线；实验代码不得直接合入。
+- 本分支：极简阅读/教学实验，仅用于理解最短控制链。
+- 新模式、新传感器、新参数或新控制器实验应从合适基线建立单独分支，取得构建、台架与回退证据后再讨论进入 `master`。
 
-```text
-build/sitl/bin/ardusub
-```
-
-## 保留原则
-
-- `ArduSub/`：完整保留官方车辆层源码。
-- `libraries/`：完整保留官方公共库，避免破坏隐式依赖。
-- `modules/`：完整保留官方 Git 子模块，不在本仓库内修改子模块源码。
-- `Tools/`：只保留 ArduSub 所需的 Waf、固件生成、Bootloader、SITL、环境安装和调试工具。
-
-这是面向 Pixhawk 类飞控板的定向固件 Fork。同步官方 ArduSub 稳定版更新时，必须重新执行 Pixhawk4 和 SITL 的完整编译验证。
-
-## 二次开发资料
-
-仓库内的 [`Sub_learning/`](Sub_learning/README.md) 采用“一份系统总览 + 多个需求案例”的教学结构。总览合并了系统架构、逐文件职责、Manual 到 Guided 的控制主线、6DOF 输出、共享库、构建测试和板卡移植；案例部分只围绕新模式、新传感器、新参数、控制算法、估计算法和新开发板六类真实需求展开。
+学习入口见 [`Sub_learning/README.md`](Sub_learning/README.md)。

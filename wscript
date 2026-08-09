@@ -594,20 +594,9 @@ def configure(cfg):
         cfg.end_msg('disabled', color='YELLOW')
 
     cfg.start_msg('Scripting')
-    if cfg.options.disable_scripting:
-        cfg.end_msg('disabled', color='YELLOW')
-    elif cfg.options.enable_scripting:
-        cfg.end_msg('enabled')
-    else:
-        cfg.end_msg('maybe')
-    cfg.recurse('libraries/AP_Scripting')
+    cfg.end_msg('excluded by minimal branch', color='YELLOW')
 
     cfg.recurse('libraries/AP_GPS')
-    cfg.recurse('libraries/AP_HAL_SITL')
-    cfg.recurse('libraries/SITL')
-
-    cfg.recurse('libraries/AP_Networking')
-    cfg.recurse('libraries/AP_DDS')
 
     cfg.start_msg('Scripting runtime checks')
     if cfg.options.scripting_checks:
@@ -800,8 +789,6 @@ def _build_dynamic_sources(bld):
             ]
         )
 
-    bld.recurse("libraries/AP_DDS")
-
     def write_version_header(tsk):
         bld = tsk.generator.bld
         return bld.write_version_header(tsk.outputs[0].abspath())
@@ -835,53 +822,14 @@ def _build_common_taskgens(bld):
         bld.libbenchmark()
 
 def _build_recursion(bld):
-    common_dirs_patterns = [
-        # TODO: Currently each vehicle also generate its own copy of the
-        # libraries. Fix this, or at least reduce the amount of
-        # vehicle-dependent libraries.
-        '*',
-        'Tools/*',
-        'libraries/*/examples/*',
-        'libraries/*/tests',
-        'libraries/*/utility/tests',
-        'libraries/*/benchmarks',
-    ]
-
-    common_dirs_excl = [
-        'modules',
-        'libraries/AP_HAL_*',
-    ]
-
-    hal_dirs_patterns = [
-        'libraries/%s/tests',
-        'libraries/%s/*/tests',
-        'libraries/%s/*/benchmarks',
-        'libraries/%s/examples/*',
-    ]
-
-    dirs_to_recurse = collect_dirs_to_recurse(
-        bld,
-        common_dirs_patterns,
-        excl=common_dirs_excl,
-    )
+    # This teaching branch produces only the Pixhawk1 ArduSub firmware.  Do
+    # not discover examples, tests, benchmarks, other vehicles or peripheral
+    # firmware here: doing so expands the dependency closure beyond the
+    # firmware that this branch actually maintains.
+    dirs_to_recurse = ['ArduSub']
     if bld.env.IOMCU_FW is not None:
         if bld.env.IOMCU_FW:
             dirs_to_recurse.append('libraries/AP_IOMCU/iofirmware')
-
-    if bld.env.PERIPH_FW is not None:
-        if bld.env.PERIPH_FW:
-            dirs_to_recurse.append('Tools/AP_Periph')
-
-    dirs_to_recurse.append('libraries/AP_Scripting')
-
-    if bld.env.ENABLE_ONVIF:
-        dirs_to_recurse.append('libraries/AP_ONVIF')
-
-    for p in hal_dirs_patterns:
-        dirs_to_recurse += collect_dirs_to_recurse(
-            bld,
-            [p % l for l in bld.env.AP_LIBRARIES],
-        )
 
     # NOTE: we need to sort to ensure the repeated sources get the
     # same index, and random ordering of the filesystem doesn't cause

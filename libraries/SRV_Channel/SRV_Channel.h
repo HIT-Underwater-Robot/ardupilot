@@ -17,11 +17,21 @@
 #include <AP_Common/AP_Common.h>
 #include <AP_Param/AP_Param.h>
 #include <AP_Common/Bitmask.h>
+#if AP_VOLZ_ENABLED
 #include <AP_Volz_Protocol/AP_Volz_Protocol.h>
+#endif
+#if AP_ROBOTISSERVO_ENABLED
 #include <AP_RobotisServo/AP_RobotisServo.h>
+#endif
+#if AP_SBUSOUTPUT_ENABLED
 #include <AP_SBusOut/AP_SBusOut.h>
+#endif
+#if HAL_SUPPORT_RCOUT_SERIAL
 #include <AP_BLHeli/AP_BLHeli.h>
+#endif
+#if AP_FETTEC_ONEWIRE_ENABLED
 #include <AP_FETtecOneWire/AP_FETtecOneWire.h>
+#endif
 
 #include "SRV_Channel_config.h"
 

@@ -6,7 +6,6 @@
 #include <AP_Logger/AP_Logger.h>
 
 #include <AC_AttitudeControl/AC_AttitudeControl.h>
-#include <AC_AttitudeControl/AC_PosControl.h>
 
 
 // Write an AHRS2 packet

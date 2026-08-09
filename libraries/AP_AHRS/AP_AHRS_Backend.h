@@ -22,7 +22,9 @@
 
 #include <AP_Math/AP_Math.h>
 #include <inttypes.h>
+#if AP_AIRSPEED_ENABLED
 #include <AP_Airspeed/AP_Airspeed.h>
+#endif
 #include <AP_InertialSensor/AP_InertialSensor.h>
 #include <AP_Common/Location.h>
 #include <AP_NavEKF/AP_NavEKF_Source.h>

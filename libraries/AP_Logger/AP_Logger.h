@@ -9,8 +9,12 @@
 
 #include <AP_HAL/AP_HAL.h>
 #include <AP_Common/AP_Common.h>
+#include <AP_Common/float16.h>
+#include <AP_Math/AP_Math.h>
 #include <AP_Param/AP_Param.h>
+#if AP_MISSION_ENABLED
 #include <AP_Mission/AP_Mission.h>
+#endif
 #include <AP_Logger/LogStructure.h>
 #include <AP_Vehicle/ModeReason.h>
 
@@ -277,12 +281,15 @@ public:
     void Write_Compass();
     void Write_Mode(uint8_t mode, const ModeReason reason);
 
+#if AP_MISSION_ENABLED
     void Write_EntireMission();
+#endif
     void Write_Command(const mavlink_command_int_t &packet,
                        uint8_t source_system,
                        uint8_t source_component,
                        MAV_RESULT result,
                        bool was_command_long=false);
+#if AP_MISSION_ENABLED
     void Write_MISE(const AP_Mission &mission, const AP_Mission::Mission_Command &cmd) {
         Write_Mission_Cmd(mission, cmd, LOG_MISE_MSG);
     }
@@ -292,6 +299,7 @@ public:
     void Write_Mission_Cmd(const AP_Mission &mission,
                            const AP_Mission::Mission_Command &cmd,
                            LogMessages id);
+#endif
     void Write_RallyPoint(uint8_t total,
                           uint8_t sequence,
                           const class RallyLocation &rally_point);

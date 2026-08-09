@@ -6,8 +6,12 @@
 #include <AP_Param/AP_Param.h>
 #include <AP_Math/AP_Math.h>
 #include <Filter/DerivativeFilter.h>
+#if HAL_MSP_SENSORS_ENABLED
 #include <AP_MSP/msp.h>
+#endif
+#if AP_EXTERNAL_AHRS_ENABLED
 #include <AP_ExternalAHRS/AP_ExternalAHRS.h>
+#endif
 
 // maximum number of sensor instances
 #ifndef BARO_MAX_INSTANCES

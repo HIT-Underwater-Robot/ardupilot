@@ -25,18 +25,6 @@ struct PACKED log_Control_Tuning {
 // Write a control tuning packet
 void Sub::Log_Write_Control_Tuning()
 {
-    // get terrain altitude
-    float terr_alt = 0.0f;
-#if AP_TERRAIN_AVAILABLE
-    if (terrain.enabled()) {
-        terrain.height_above_terrain(terr_alt, true);
-    } else {
-        terr_alt = rangefinder_state.rangefinder_terrain_offset_cm * 0.01f;
-    }
-#else
-    terr_alt = rangefinder_state.rangefinder_terrain_offset_cm * 0.01f;
-#endif
-
     struct log_Control_Tuning pkt = {
         LOG_PACKET_HEADER_INIT(LOG_CONTROL_TUNING_MSG),
         time_us             : AP_HAL::micros64(),
@@ -44,14 +32,14 @@ void Sub::Log_Write_Control_Tuning()
         angle_boost         : attitude_control.angle_boost(),
         throttle_out        : motors.get_throttle(),
         throttle_hover      : motors.get_throttle_hover(),
-        desired_alt         : pos_control.get_pos_target_U_cm() * 0.01f,
-        inav_alt            : inertial_nav.get_position_z_up_cm() * 0.01f,
+        desired_alt         : 0.0f,
+        inav_alt            : 0.0f,
         baro_alt            : barometer.get_altitude(),
-        desired_rangefinder_alt   : mode_surftrak.get_rangefinder_target_cm() * 0.01,
-        rangefinder_alt           : rangefinder_state.alt,
-        terr_alt            : terr_alt,
-        target_climb_rate   : (int16_t)pos_control.get_vel_target_U_cms(),
-        climb_rate          : climb_rate
+        desired_rangefinder_alt   : 0.0f,
+        rangefinder_alt           : 0.0f,
+        terr_alt            : 0.0f,
+        target_climb_rate   : 0,
+        climb_rate          : 0
     };
     logger.WriteBlock(&pkt, sizeof(pkt));
 }

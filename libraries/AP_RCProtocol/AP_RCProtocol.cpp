@@ -21,26 +21,64 @@
 
 #if AP_RCPROTOCOL_ENABLED
 
+#if AP_RCPROTOCOL_PPMSUM_ENABLED
 #include "AP_RCProtocol_PPMSum.h"
+#endif
+#if AP_RCPROTOCOL_DSM_ENABLED
 #include "AP_RCProtocol_DSM.h"
+#endif
+#if AP_RCPROTOCOL_EMLID_RCIO_ENABLED
 #include "AP_RCProtocol_Emlid_RCIO.h"
+#endif
+#if AP_RCPROTOCOL_IBUS_ENABLED
 #include "AP_RCProtocol_IBUS.h"
+#endif
 #include "AP_RCProtocol_IOMCU.h"
+#if AP_RCPROTOCOL_SBUS_ENABLED
 #include "AP_RCProtocol_SBUS.h"
+#endif
+#if AP_RCPROTOCOL_SUMD_ENABLED
 #include "AP_RCProtocol_SUMD.h"
+#endif
+#if AP_RCPROTOCOL_SRXL_ENABLED
 #include "AP_RCProtocol_SRXL.h"
+#endif
+#if AP_RCPROTOCOL_SRXL2_ENABLED
 #include "AP_RCProtocol_SRXL2.h"
+#endif
+#if AP_RCPROTOCOL_CRSF_ENABLED
 #include "AP_RCProtocol_CRSF.h"
+#endif
+#if AP_RCPROTOCOL_ST24_ENABLED
 #include "AP_RCProtocol_ST24.h"
+#endif
+#if AP_RCPROTOCOL_FPORT_ENABLED
 #include "AP_RCProtocol_FPort.h"
+#endif
+#if AP_RCPROTOCOL_FPORT2_ENABLED
 #include "AP_RCProtocol_FPort2.h"
+#endif
+#if AP_RCPROTOCOL_DRONECAN_ENABLED
 #include "AP_RCProtocol_DroneCAN.h"
+#endif
+#if AP_RCPROTOCOL_GHST_ENABLED
 #include "AP_RCProtocol_GHST.h"
+#endif
+#if AP_RCPROTOCOL_MAVLINK_RADIO_ENABLED
 #include "AP_RCProtocol_MAVLinkRadio.h"
+#endif
+#if AP_RCPROTOCOL_JOYSTICK_SFML_ENABLED
 #include "AP_RCProtocol_Joystick_SFML.h"
+#endif
+#if AP_RCPROTOCOL_UDP_ENABLED
 #include "AP_RCProtocol_UDP.h"
+#endif
+#if AP_RCPROTOCOL_FDM_ENABLED
 #include "AP_RCProtocol_FDM.h"
+#endif
+#if AP_RCPROTOCOL_RADIO_ENABLED
 #include "AP_RCProtocol_Radio.h"
+#endif
 #include <AP_Math/AP_Math.h>
 #include <RC_Channel/RC_Channel.h>
 

@@ -2,17 +2,14 @@
 
 
 bool ModeStabilize::init(bool ignore_checks) {
-    // set target altitude to zero for reporting
-    position_control->set_pos_desired_U_cm(0);
     sub.last_pilot_heading_rad = ahrs.get_yaw_rad();
 
-    return true;
     return true;
 }
 
 void ModeStabilize::run()
 {
-  uint32_t tnow = AP_HAL::millis();
+    uint32_t tnow = AP_HAL::millis();
     float target_roll, target_pitch;
 
     // if not armed set throttle to zero and exit immediately

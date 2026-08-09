@@ -2,7 +2,9 @@
 
 #include <AP_HAL/AP_HAL_Boards.h>
 #include <AP_InertialSensor/AP_InertialSensor_config.h>
+#ifndef AP_EXTERNAL_AHRS_ENABLED
 #include <AP_ExternalAHRS/AP_ExternalAHRS_config.h>
+#endif
 
 #ifndef AP_AHRS_ENABLED
 #define AP_AHRS_ENABLED 1

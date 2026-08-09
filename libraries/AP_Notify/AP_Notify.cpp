@@ -16,33 +16,7 @@
 #include "AP_Notify.h"
 
 #include "AP_BoardLED.h"
-#include "PixRacerLED.h"
-#include "Buzzer.h"
-#include "Display.h"
-#include "ExternalLED.h"
-#include "GPIO_LED_1.h"
-#include "IS31FL3195.h"
-#include "PCA9685LED_I2C.h"
-#include "NavigatorLED.h"
-#include "NeoPixel.h"
-#include "NCP5623.h"
-#include "OreoLED_I2C.h"
-#include "RCOutputRGBLed.h"
-#include "ToneAlarm.h"
-#include "ToshibaLED_I2C.h"
-#include "LP5562.h"
-#include "VRBoard_LED.h"
-#include "DiscreteRGBLed.h"
-#include "DiscoLED.h"
-#include "Led_Sysfs.h"
-#include "DroneCAN_RGB_LED.h"
-#include "SITL_SFML_LED.h"
 #include <stdio.h>
-#include "AP_BoardLED2.h"
-#include "ProfiLED.h"
-#include "ScriptingLED.h"
-#include "DShotLED.h"
-#include "ProfiLED_IOMCU.h"
 
 extern const AP_HAL::HAL& hal;
 

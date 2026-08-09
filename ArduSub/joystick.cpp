@@ -175,26 +175,16 @@ void Sub::handle_jsbutton_press(uint8_t _button, bool shift, bool held)
         set_mode(Mode::Number::STABILIZE, ModeReason::RC_COMMAND);
         break;
     case JSButton::button_function_t::k_mode_depth_hold:
-        set_mode(Mode::Number::ALT_HOLD, ModeReason::RC_COMMAND);
-        break;
     case JSButton::button_function_t::k_mode_auto:
-        set_mode(Mode::Number::AUTO, ModeReason::RC_COMMAND);
-        break;
     case JSButton::button_function_t::k_mode_guided:
-        set_mode(Mode::Number::GUIDED, ModeReason::RC_COMMAND);
-        break;
     case JSButton::button_function_t::k_mode_circle:
-        set_mode(Mode::Number::CIRCLE, ModeReason::RC_COMMAND);
-        break;
     case JSButton::button_function_t::k_mode_acro:
-        set_mode(Mode::Number::ACRO, ModeReason::RC_COMMAND);
-        break;
     case JSButton::button_function_t::k_mode_poshold:
-        set_mode(Mode::Number::POSHOLD, ModeReason::RC_COMMAND);
+        gcs().send_text(MAV_SEVERITY_WARNING, "Mode not included in minimal build");
         break;
 #if AP_RANGEFINDER_ENABLED
     case JSButton::button_function_t::k_mode_surftrak:
-        set_mode(Mode::Number::SURFTRAK, ModeReason::RC_COMMAND);
+        gcs().send_text(MAV_SEVERITY_WARNING, "Mode not included in minimal build");
         break;
 #endif
 #if HAL_MOUNT_ENABLED

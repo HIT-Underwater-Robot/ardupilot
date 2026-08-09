@@ -6,9 +6,7 @@
 
 #include <AP_Vehicle/AP_Vehicle_Type.h>
 #include <AP_HAL/AP_HAL_Boards.h>
-#include <AP_Beacon/AP_Beacon_config.h>
 #include <AP_AHRS/AP_AHRS_config.h>
-#include <AP_OpticalFlow/AP_OpticalFlow_config.h>
 
 // define for when to include all features
 #define EK3_FEATURE_ALL APM_BUILD_TYPE(APM_BUILD_AP_DAL_Standalone) || APM_BUILD_TYPE(APM_BUILD_Replay)

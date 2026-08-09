@@ -4,7 +4,6 @@
 
 #include "GCS.h"
 
-#include <AC_Fence/AC_Fence.h>
 #include <AP_BoardConfig/AP_BoardConfig.h>
 #include <AP_Logger/AP_Logger.h>
 #include <AP_BattMonitor/AP_BattMonitor.h>
@@ -14,15 +13,9 @@
 #include <AP_Compass/AP_Compass.h>
 #include <AP_GPS/AP_GPS.h>
 #include <AP_Arming/AP_Arming.h>
-#include <AP_VisualOdom/AP_VisualOdom.h>
 #include <AP_Notify/AP_Notify.h>
-#include <AP_OpticalFlow/AP_OpticalFlow.h>
 #include <RC_Channel/RC_Channel.h>
 #include <AP_Vehicle/AP_Vehicle_Type.h>
-
-#include "MissionItemProtocol_Waypoints.h"
-#include "MissionItemProtocol_Rally.h"
-#include "MissionItemProtocol_Fence.h"
 
 extern const AP_HAL::HAL& hal;
 

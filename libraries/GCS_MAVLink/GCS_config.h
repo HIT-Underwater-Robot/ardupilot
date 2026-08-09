@@ -2,10 +2,14 @@
 
 #include <AP_HAL/AP_HAL_Boards.h>
 #include <AP_Relay/AP_Relay_config.h>
+#ifndef AP_MISSION_ENABLED
 #include <AP_Mission/AP_Mission_config.h>
+#endif
 #include <AP_InertialSensor/AP_InertialSensor_config.h>
 #include <AP_Arming/AP_Arming_config.h>
+#ifndef AP_RANGEFINDER_ENABLED
 #include <AP_RangeFinder/AP_RangeFinder_config.h>
+#endif
 
 #ifndef HAL_GCS_ENABLED
 #define HAL_GCS_ENABLED 1

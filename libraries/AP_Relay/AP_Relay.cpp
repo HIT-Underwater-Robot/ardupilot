@@ -16,9 +16,15 @@
 #include <GCS_MAVLink/GCS.h>
 #include <AP_Logger/AP_Logger.h>
 
+#if AP_ICENGINE_ENABLED
 #include <AP_ICEngine/AP_ICEngine.h>
+#endif
+#if HAL_PARACHUTE_ENABLED
 #include <AP_Parachute/AP_Parachute.h>
+#endif
+#if AP_CAMERA_ENABLED
 #include <AP_Camera/AP_Camera.h>
+#endif
 
 #include <AP_Vehicle/AP_Vehicle_Type.h>
 #if APM_BUILD_TYPE(APM_BUILD_Rover)

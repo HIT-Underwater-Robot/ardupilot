@@ -14,7 +14,9 @@
 #include <AP_BoardConfig/AP_BoardConfig.h>
 #include <AP_AHRS/AP_AHRS.h>
 #include <AP_AHRS/AP_AHRS_View.h>
+#if AP_EXTERNAL_AHRS_ENABLED
 #include <AP_ExternalAHRS/AP_ExternalAHRS.h>
+#endif
 #include <AP_GyroFFT/AP_GyroFFT.h>
 #include <AP_Vehicle/AP_Vehicle_Type.h>
 #if !APM_BUILD_TYPE(APM_BUILD_Rover)
@@ -22,24 +24,9 @@
 #endif
 #include <GCS_MAVLink/GCS.h>
 
-#include "AP_InertialSensor_BMI160.h"
-#include "AP_InertialSensor_BMI270.h"
 #include "AP_InertialSensor_Backend.h"
-#include "AP_InertialSensor_L3G4200D.h"
-#include "AP_InertialSensor_LSM6DSV.h"
 #include "AP_InertialSensor_LSM9DS0.h"
-#include "AP_InertialSensor_LSM9DS1.h"
 #include "AP_InertialSensor_Invensense.h"
-#include "AP_InertialSensor_SITL.h"
-#include "AP_InertialSensor_BMI055.h"
-#include "AP_InertialSensor_BMI088.h"
-#include "AP_InertialSensor_Invensensev2.h"
-#include "AP_InertialSensor_ADIS1647x.h"
-#include "AP_InertialSensor_ExternalAHRS.h"
-#include "AP_InertialSensor_Invensensev3.h"
-#include "AP_InertialSensor_NONE.h"
-#include "AP_InertialSensor_SCHA63T.h"
-#include "AP_InertialSensor_ASM330.h"
 #include <AP_Scheduler/AP_Scheduler.h>
 
 /* Define INS_TIMING_DEBUG to track down scheduling issues with the main loop.

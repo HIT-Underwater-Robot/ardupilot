@@ -61,8 +61,12 @@
 #define REPLAY_LOG_NEW_MSG_MAX 230
 #define REPLAY_LOG_NEW_MSG_MIN 220
 
+#ifndef AP_FENCE_ENABLED
 #include <AC_Fence/AC_Fence_config.h>
+#endif
 #define HAL_LOGGER_FENCE_ENABLED HAL_LOGGING_ENABLED && AP_FENCE_ENABLED
 
+#ifndef HAL_RALLY_ENABLED
 #include <AP_Rally/AP_Rally_config.h>
+#endif
 #define HAL_LOGGER_RALLY_ENABLED HAL_LOGGING_ENABLED && HAL_RALLY_ENABLED

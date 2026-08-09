@@ -5,7 +5,9 @@
 #include <AP_Param/AP_Param.h>
 #include <AP_RTC/AP_RTC.h>
 #include <AC_PID/AC_PI.h>
+#ifndef AP_RADIO_ENABLED
 #include <AP_Radio/AP_Radio_config.h>
+#endif
 
 #if AP_RADIO_ENABLED
 #include <AP_Radio/AP_Radio.h>

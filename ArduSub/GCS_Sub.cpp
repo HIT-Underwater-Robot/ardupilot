@@ -2,6 +2,21 @@
 
 #include "Sub.h"
 
+MAV_TYPE GCS_Sub::frame_type() const
+{
+    return MAV_TYPE_SUBMARINE;
+}
+
+uint32_t GCS_Sub::custom_mode() const
+{
+    return (uint32_t)sub.control_mode;
+}
+
+bool GCS_Sub::vehicle_initialised() const
+{
+    return sub.ap.initialised;
+}
+
 void GCS_Sub::update_vehicle_sensor_status_flags()
 {
     // mode-specific sensors:
@@ -10,34 +25,15 @@ void GCS_Sub::update_vehicle_sensor_status_flags()
         MAV_SYS_STATUS_SENSOR_ATTITUDE_STABILIZATION |
         MAV_SYS_STATUS_SENSOR_YAW_POSITION;
 
-    control_sensors_enabled |=
-        MAV_SYS_STATUS_SENSOR_ANGULAR_RATE_CONTROL |
-        MAV_SYS_STATUS_SENSOR_ATTITUDE_STABILIZATION |
-        MAV_SYS_STATUS_SENSOR_YAW_POSITION;
-
-    control_sensors_health |=
-        MAV_SYS_STATUS_SENSOR_ANGULAR_RATE_CONTROL |
-        MAV_SYS_STATUS_SENSOR_ATTITUDE_STABILIZATION |
-        MAV_SYS_STATUS_SENSOR_YAW_POSITION;
-
-    control_sensors_present |=
-        MAV_SYS_STATUS_SENSOR_Z_ALTITUDE_CONTROL |
-        MAV_SYS_STATUS_SENSOR_XY_POSITION_CONTROL;
-
-    switch (sub.control_mode) {
-    case Mode::Number::ALT_HOLD:
-    case Mode::Number::AUTO:
-    case Mode::Number::GUIDED:
-    case Mode::Number::CIRCLE:
-    case Mode::Number::SURFACE:
-    case Mode::Number::POSHOLD:
-        control_sensors_enabled |= MAV_SYS_STATUS_SENSOR_Z_ALTITUDE_CONTROL;
-        control_sensors_health |= MAV_SYS_STATUS_SENSOR_Z_ALTITUDE_CONTROL;
-        control_sensors_enabled |= MAV_SYS_STATUS_SENSOR_XY_POSITION_CONTROL;
-        control_sensors_health |= MAV_SYS_STATUS_SENSOR_XY_POSITION_CONTROL;
-        break;
-    default:
-        break;
+    if (sub.control_mode == Mode::Number::STABILIZE) {
+        control_sensors_enabled |=
+            MAV_SYS_STATUS_SENSOR_ANGULAR_RATE_CONTROL |
+            MAV_SYS_STATUS_SENSOR_ATTITUDE_STABILIZATION |
+            MAV_SYS_STATUS_SENSOR_YAW_POSITION;
+        control_sensors_health |=
+            MAV_SYS_STATUS_SENSOR_ANGULAR_RATE_CONTROL |
+            MAV_SYS_STATUS_SENSOR_ATTITUDE_STABILIZATION |
+            MAV_SYS_STATUS_SENSOR_YAW_POSITION;
     }
 
     // override the parent class's values for ABSOLUTE_PRESSURE to
@@ -53,33 +49,6 @@ void GCS_Sub::update_vehicle_sensor_status_flags()
         }
     }
 
-#if AP_TERRAIN_AVAILABLE
-    switch (sub.terrain.status()) {
-    case AP_Terrain::TerrainStatusDisabled:
-        break;
-    case AP_Terrain::TerrainStatusUnhealthy:
-        // To-Do: restore unhealthy terrain status reporting once terrain is used in Sub
-        //control_sensors_present |= MAV_SYS_STATUS_TERRAIN;
-        //control_sensors_enabled |= MAV_SYS_STATUS_TERRAIN;
-        //break;
-    case AP_Terrain::TerrainStatusOK:
-        control_sensors_present |= MAV_SYS_STATUS_TERRAIN;
-        control_sensors_enabled |= MAV_SYS_STATUS_TERRAIN;
-        control_sensors_health  |= MAV_SYS_STATUS_TERRAIN;
-        break;
-    }
-#endif
-
-#if AP_RANGEFINDER_ENABLED
-    const RangeFinder *rangefinder = RangeFinder::get_singleton();
-    if (sub.rangefinder_state.enabled) {
-        control_sensors_present |= MAV_SYS_STATUS_SENSOR_LASER_POSITION;
-        control_sensors_enabled |= MAV_SYS_STATUS_SENSOR_LASER_POSITION;
-        if (rangefinder && rangefinder->has_data_orient(ROTATION_PITCH_270)) {
-            control_sensors_health |= MAV_SYS_STATUS_SENSOR_LASER_POSITION;
-        }
-    }
-#endif
 }
 
 #if AP_LTM_TELEM_ENABLED

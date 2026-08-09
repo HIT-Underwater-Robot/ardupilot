@@ -1,9 +1,15 @@
 #pragma once
 
 #include <AP_HAL/AP_HAL_Boards.h>
+#if HAL_MSP_SENSORS_ENABLED
 #include <AP_MSP/msp.h>
+#endif
+#ifndef AP_EXTERNAL_AHRS_ENABLED
 #include <AP_ExternalAHRS/AP_ExternalAHRS.h>
+#endif
+#ifndef AP_AIRSPEED_ENABLED
 #include <AP_Airspeed/AP_Airspeed_config.h>
+#endif
 
 #ifndef HAL_BARO_WIND_COMP_ENABLED
 #define HAL_BARO_WIND_COMP_ENABLED 1

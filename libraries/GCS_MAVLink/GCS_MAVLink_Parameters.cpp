@@ -6,17 +6,9 @@
 #include <AP_Vehicle/AP_Vehicle_Type.h>
 #include "GCS.h"
 
-#include <AP_Airspeed/AP_Airspeed_config.h>
-#include <AP_AIS/AP_AIS_config.h>
 #include <AP_BattMonitor/AP_BattMonitor_config.h>
 #include <AP_Compass/AP_Compass_config.h>
 #include <AP_GPS/AP_GPS_config.h>
-#include <AP_Landing/AP_Landing_config.h>
-#include <AP_Mount/AP_Mount_config.h>
-#include <AP_OpticalFlow/AP_OpticalFlow_config.h>
-#include <AP_RangeFinder/AP_RangeFinder_config.h>
-#include <AP_RPM/AP_RPM_config.h>
-#include <AP_Terrain/AP_Terrain_config.h>
 #include <RC_Channel/RC_Channel_config.h>
 
 const struct AP_Param::GroupInfo *GCS::_chan_var_info[MAVLINK_COMM_NUM_BUFFERS];

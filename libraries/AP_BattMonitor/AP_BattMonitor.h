@@ -7,7 +7,9 @@
 #include <AP_Common/AP_Common.h>
 #include <AP_Param/AP_Param.h>
 #include <AP_Math/AP_Math.h>
+#if AP_TEMPERATURE_SENSOR_ENABLED
 #include <AP_TemperatureSensor/AP_TemperatureSensor_config.h>
+#endif
 #include <GCS_MAVLink/GCS_MAVLink.h>
 #include "AP_BattMonitor_Params.h"
 

@@ -5,14 +5,18 @@
 #include "AP_Logger_Backend.h"
 
 #include "AP_Logger_File.h"
+#if HAL_LOGGING_DATAFLASH_ENABLED
 #include "AP_Logger_Flash_JEDEC.h"
 #include "AP_Logger_W25NXX.h"
+#endif
 #include "AP_Logger_MAVLink.h"
 
 #include <AP_InternalError/AP_InternalError.h>
 #include <GCS_MAVLink/GCS.h>
 #include <AP_BoardConfig/AP_BoardConfig.h>
+#if HAL_RALLY_ENABLED
 #include <AP_Rally/AP_Rally.h>
+#endif
 #include <AP_Vehicle/AP_Vehicle_Type.h>
 
 #if HAL_LOGGER_FENCE_ENABLED
@@ -907,10 +911,12 @@ void AP_Logger::flush(void) {
 #endif
 
 
+#if AP_MISSION_ENABLED
 void AP_Logger::Write_EntireMission()
 {
     FOR_EACH_BACKEND(Write_EntireMission());
 }
+#endif
 
 void AP_Logger::Write_Message(const char *message)
 {
@@ -931,12 +937,14 @@ void AP_Logger::Write_Parameter(const char *name, float value)
     FOR_EACH_BACKEND(Write_Parameter(name, value, quiet_nanf()));
 }
 
+#if AP_MISSION_ENABLED
 void AP_Logger::Write_Mission_Cmd(const AP_Mission &mission,
                                   const AP_Mission::Mission_Command &cmd,
                                   LogMessages id)
 {
     FOR_EACH_BACKEND(Write_Mission_Cmd(mission, cmd, id));
 }
+#endif
 
 #if HAL_RALLY_ENABLED
 void AP_Logger::Write_RallyPoint(uint8_t total,

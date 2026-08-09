@@ -7,28 +7,48 @@
 
 #if HAL_GCS_ENABLED
 
+#ifndef AP_ADVANCEDFAILSAFE_ENABLED
 #include <AP_AdvancedFailsafe/AP_AdvancedFailsafe_config.h>
+#endif
 #include <AP_HAL/AP_HAL.h>
 #include <AP_Common/AP_Common.h>
 #include "GCS_MAVLink.h"
+#if AP_MISSION_ENABLED
 #include <AP_Mission/AP_Mission.h>
+#endif
 #include <stdint.h>
 #include "MAVLink_routing.h"
 #include <AP_RTC/JitterCorrection.h>
 #include <AP_Common/Bitmask.h>
+#if AP_LTM_TELEM_ENABLED
 #include <AP_LTM_Telem/AP_LTM_Telem.h>
+#endif
+#if AP_DEVO_TELEM_ENABLED
 #include <AP_Devo_Telem/AP_Devo_Telem.h>
+#endif
 #include <AP_Filesystem/AP_Filesystem_config.h>
+#if AP_FRSKY_TELEM_ENABLED
 #include <AP_Frsky_Telem/AP_Frsky_config.h>
+#endif
 #include <AP_GPS/AP_GPS.h>
+#if HAL_MOUNT_ENABLED
 #include <AP_Mount/AP_Mount_config.h>
+#endif
 #include <AP_SerialManager/AP_SerialManager.h>
+#if AP_RANGEFINDER_ENABLED
 #include <AP_RangeFinder/AP_RangeFinder_config.h>
+#endif
+#if AP_WINCH_ENABLED
 #include <AP_Winch/AP_Winch_config.h>
+#endif
 #include <AP_AHRS/AP_AHRS_config.h>
 #include <AP_Arming/AP_Arming_config.h>
+#ifndef AP_AIRSPEED_ENABLED
 #include <AP_Airspeed/AP_Airspeed_config.h>
+#endif
+#if AP_FOLLOW_ENABLED
 #include <AP_Follow/AP_Follow.h>
+#endif
 
 #include "ap_message.h"
 
@@ -318,6 +338,7 @@ public:
     static float telemetry_radio_rssi(); // 0==no signal, 1==full signal
     static bool last_txbuf_is_greater(uint8_t txbuf_limit);
 
+#if AP_MISSION_ENABLED
     // mission item index to be sent on queued msg, delayed or not
     uint16_t mission_item_reached_index = AP_MISSION_CMD_INDEX_NONE;
 
@@ -326,6 +347,7 @@ public:
     virtual MISSION_STATE mission_state(const class AP_Mission &mission) const;
     // send a mission_current message for the supplied waypoint
     void send_mission_current(const class AP_Mission &mission, uint16_t seq);
+#endif
 
     // common send functions
     void send_heartbeat(void) const;
@@ -1006,8 +1028,10 @@ private:
 
     void send_distance_sensor(const class AP_RangeFinder_Backend *sensor, const uint8_t instance) const;
 
+#if AP_MISSION_ENABLED
     virtual bool handle_guided_request(AP_Mission::Mission_Command &cmd) { return false; };
     virtual void handle_change_alt_request(Location &location) {};
+#endif
     void handle_common_mission_message(const mavlink_message_t &msg);
 
     virtual void handle_manual_control_axes(const mavlink_manual_control_t &packet, const uint32_t tnow) {};

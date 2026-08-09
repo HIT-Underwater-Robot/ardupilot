@@ -1,7 +1,9 @@
 #pragma once
 
 #include "AP_Logger_Backend.h"
+#if HAL_RALLY_ENABLED
 #include <AP_Rally/AP_Rally.h>
+#endif
 #include <AP_RTC/AP_RTC_config.h>
 
 class LoggerMessageWriter {
@@ -45,6 +47,7 @@ private:
     Stage stage;
 };
 
+#if AP_MISSION_ENABLED
 class LoggerMessageWriter_WriteEntireMission : public LoggerMessageWriter {
 public:
 
@@ -61,6 +64,7 @@ private:
     uint16_t _mission_number_to_send;
     Stage stage;
 };
+#endif
 
 class LoggerMessageWriter_WriteAllRallyPoints : public LoggerMessageWriter {
 public:

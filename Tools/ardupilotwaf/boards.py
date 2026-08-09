@@ -63,30 +63,9 @@ class Board:
 
         self.configure_env(cfg, env)
 
-        # Setup scripting:
-        env.DEFINES.update(
-            LUA_32BITS = 1,
-        )
-
-        env.AP_LIBRARIES += [
-            'AP_Scripting',
-            'AP_Scripting/lua/src',
-        ]
-
         if cfg.options.enable_scripting:
-            env.DEFINES.update(
-                AP_SCRIPTING_ENABLED = 1,
-            )
-        elif cfg.options.disable_scripting:
-            env.DEFINES.update(
-                AP_SCRIPTING_ENABLED = 0,
-            )
-
-        # embed any scripts from ROMFS/scripts
-        if os.path.exists('ROMFS/scripts'):
-            for f in os.listdir('ROMFS/scripts'):
-                if fnmatch.fnmatch(f, "*.lua"):
-                    env.ROMFS_FILES += [('scripts/'+f,'ROMFS/scripts/'+f)]
+            cfg.fatal('Lua scripting is not included in the minimal Pixhawk1 branch')
+        env.DEFINES.update(AP_SCRIPTING_ENABLED = 0)
 
         # allow GCS disable for AP_DAL example
         if cfg.options.no_gcs:
@@ -674,8 +653,9 @@ class Board:
 Board = BoardMeta('Board', Board.__bases__, dict(Board.__dict__))
 
 def add_dynamic_boards_chibios():
-    '''add boards based on existence of hwdef.dat in subdirectories for ChibiOS'''
-    add_dynamic_boards_from_hwdef_dir(chibios, 'libraries/AP_HAL_ChibiOS/hwdef')
+    '''register the only board supported by this focused branch'''
+    if 'Pixhawk1' not in _board_classes:
+        type('Pixhawk1', (chibios,), {'name': 'Pixhawk1'})
 
 def add_dynamic_boards_linux():
     '''add boards based on existence of hwdef.dat in subdirectories for '''
@@ -712,11 +692,7 @@ def add_dynamic_boards_esp32():
 
 def get_boards_names():
     add_dynamic_boards_chibios()
-    add_dynamic_boards_esp32()
-    add_dynamic_boards_linux()
-    add_dynamic_boards_sitl()
-
-    return sorted(list(_board_classes.keys()), key=str.lower)
+    return ['Pixhawk1']
 
 def is_board_based(board, cls):
     return issubclass(_board_classes[board], cls)
@@ -1307,7 +1283,6 @@ class chibios(Board):
         ]
 
         env.INCLUDES += [
-            cfg.srcnode.find_dir('libraries/AP_GyroFFT/CMSIS_5/include').abspath(),
             cfg.srcnode.find_dir('modules/lwip/src/include/compat/posix').abspath()
         ]
 

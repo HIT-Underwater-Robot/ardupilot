@@ -12,7 +12,9 @@
 
 #include "iofirmware/ioprotocol.h"
 #include <AP_HAL/RCOutput.h>
+#if HAL_WITH_ESC_TELEM
 #include <AP_ESC_Telem/AP_ESC_Telem_Backend.h>
+#endif
 
 typedef uint32_t eventmask_t;
 typedef struct ch_thread thread_t;
@@ -23,7 +25,7 @@ typedef struct ch_thread thread_t;
 
 
 class AP_IOMCU
-#ifdef HAL_WITH_ESC_TELEM
+#if HAL_WITH_ESC_TELEM
   : public AP_ESC_Telem_Backend
 #endif
 {

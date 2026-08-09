@@ -1,9 +1,7 @@
 #pragma once
 
 #include <AP_HAL/AP_HAL_Boards.h>
-#include <AP_Frsky_Telem/AP_Frsky_config.h>
 #include <GCS_MAVLink/GCS_config.h>
-#include <AP_Radio/AP_Radio_config.h>
 
 #ifndef AP_RCPROTOCOL_ENABLED
 #define AP_RCPROTOCOL_ENABLED 1

@@ -17,4 +17,6 @@
 #define FW_TYPE FIRMWARE_VERSION_TYPE_OFFICIAL
 
 #include <AP_Common/AP_FWVersionDefine.h>
+#if AP_CHECK_FIRMWARE_ENABLED
 #include <AP_CheckFirmware/AP_CheckFirmwareDefine.h>
+#endif

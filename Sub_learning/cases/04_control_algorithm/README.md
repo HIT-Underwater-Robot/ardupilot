@@ -1,5 +1,7 @@
 # 案例 04：为 Precision Manual 增加输入斜率限制
 
+> 设计练习：当前极简分支没有 Precision Manual。控制实验必须在独立分支保留 arming、spool、混控和回退路径。
+
 > 状态：教学设计，依赖[案例 01](../01_new_flight_mode/README.md)中的新模式骨架，当前仓库尚未实现。本案例只改变新模式的目标输入整形，不修改现有 Manual、姿态/位置 PID、6DOF mixer 或 PWM 输出。
 
 ## 1. 需求定义

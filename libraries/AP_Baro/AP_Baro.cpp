@@ -26,31 +26,14 @@
 #include <AP_HAL/AP_HAL.h>
 #include <AP_Math/AP_Math.h>
 #include <AP_BoardConfig/AP_BoardConfig.h>
-#include <AP_CANManager/AP_CANManager.h>
 #include <AP_Vehicle/AP_Vehicle_Type.h>
 #include <AP_HAL/I2CDevice.h>
 
-#include "AP_Baro_SITL.h"
-#include "AP_Baro_BMP085.h"
-#include "AP_Baro_BMP280.h"
-#include "AP_Baro_BMP388.h"
-#include "AP_Baro_BMP581.h"
-#include "AP_Baro_SPL06.h"
-#include "AP_Baro_KellerLD.h"
 #include "AP_Baro_MS5611.h"
-#include "AP_Baro_ICM20789.h"
-#include "AP_Baro_LPS2XH.h"
-#include "AP_Baro_FBM320.h"
-#include "AP_Baro_DPS280.h"
-#include "AP_Baro_Dummy.h"
-#include "AP_Baro_DroneCAN.h"
-#include "AP_Baro_MSP.h"
-#include "AP_Baro_ExternalAHRS.h"
-#include "AP_Baro_ICP101XX.h"
-#include "AP_Baro_ICP201XX.h"
-#include "AP_Baro_AUAV.h"
 
+#if AP_AIRSPEED_ENABLED
 #include <AP_Airspeed/AP_Airspeed.h>
+#endif
 #include <AP_AHRS/AP_AHRS.h>
 #include <AP_Arming/AP_Arming.h>
 #include <AP_Logger/AP_Logger.h>

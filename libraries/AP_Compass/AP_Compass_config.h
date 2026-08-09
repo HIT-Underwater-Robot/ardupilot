@@ -1,8 +1,12 @@
 #pragma once
 
 #include <AP_HAL/AP_HAL_Boards.h>
+#ifndef AP_EXTERNAL_AHRS_ENABLED
 #include <AP_ExternalAHRS/AP_ExternalAHRS_config.h>
+#endif
+#if HAL_MSP_SENSORS_ENABLED
 #include <AP_MSP/msp.h>
+#endif
 #include <AP_AHRS/AP_AHRS_config.h>
 #include <AP_GPS/AP_GPS_config.h>
 #include <AP_InertialSensor/AP_InertialSensor_config.h>
@@ -160,4 +164,3 @@
 #ifndef AP_COMPASS_HMC5843_INTERNAL_BUS_PROBING_ENABLED
 #define AP_COMPASS_HMC5843_INTERNAL_BUS_PROBING_ENABLED (AP_COMPASS_HMC5843_ENABLED && AP_COMPASS_INTERNAL_BUS_PROBING_ENABLED)
 #endif  // AP_COMPASS_HMC5843_INTERNAL_BUS_PROBING_ENABLED
-

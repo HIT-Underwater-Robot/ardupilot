@@ -1,10 +1,15 @@
 #pragma once
 
 #include <AP_HAL/AP_HAL_Boards.h>
-#include <AP_ESC_Telem/AP_ESC_Telem_config.h>
+#if HAL_EFI_ENABLED
 #include <AP_EFI/AP_EFI_config.h>
+#endif
+#if HAL_GENERATOR_ENABLED
 #include <AP_Generator/AP_Generator_config.h>
+#endif
+#if HAL_TORQEEDO_ENABLED
 #include <AP_Torqeedo/AP_Torqeedo_config.h>
+#endif
 
 #ifndef AP_BATTERY_ENABLED
 #define AP_BATTERY_ENABLED 1

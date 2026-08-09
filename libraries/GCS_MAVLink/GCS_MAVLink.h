@@ -3,7 +3,9 @@
 #pragma once
 
 #include <AP_HAL/AP_HAL_Boards.h>
+#ifndef AP_NETWORKING_ENABLED
 #include <AP_Networking/AP_Networking_Config.h>
+#endif
 
 // we have separate helpers disabled to make it possible
 // to select MAVLink 1.0 in the arduino GUI build

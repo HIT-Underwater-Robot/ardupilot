@@ -2,9 +2,6 @@
 
 
 bool ModeManual::init(bool ignore_checks) {
-    // set target altitude to zero for reporting
-    position_control->set_pos_desired_U_cm(0);
-
     // attitude hold inputs become thrust inputs in manual mode
     // set to neutral to prevent chaotic behavior (esp. roll/pitch)
     sub.set_neutral_controls();

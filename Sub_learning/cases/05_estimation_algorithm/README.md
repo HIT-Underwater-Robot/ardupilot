@@ -1,5 +1,7 @@
 # 案例 05：压力深度垂速 Shadow Estimator
 
+> 设计练习：先做 log-only/shadow 估计，不能直接替换当前 AHRS/EKF3 主估计路径。
+
 > 状态：教学设计，当前仓库尚未实现。本案例只生成旁路估计与日志，严禁把输出接入 EKF、姿态/位置控制器、模式进入条件、arming 或 failsafe。
 
 ## 1. 为什么先做 shadow estimator
