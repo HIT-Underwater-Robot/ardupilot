@@ -13,13 +13,24 @@
 
 自动测试、日志、failsafe 和回退不再作为独立案例；它们是每一条开发主线必须包含的工程环节。
 
-所有名称和参数名在本篇中都是候选。选中需求后必须重新核对当前 4.7.0 的编号、接口和依赖，不能把候选表当成已经实现的功能。
+本目录已经为六类推荐需求各写一篇独立 README：
+
+| 推荐顺序 | 需求类型 | 教学案例 | 当前状态 |
+|---:|---|---|---|
+| 1 | 新参数 | [新增航向保持过渡时间参数](cases/03_new_parameter/README.md) | 设计教程，未实现 |
+| 2 | 新模式 | [新增 Precision Manual 飞行模式](cases/01_new_flight_mode/README.md) | 设计教程，未实现 |
+| 3 | 控制算法 | [为 Precision Manual 增加输入斜率限制](cases/04_control_algorithm/README.md) | 设计教程，未实现 |
+| 4 | 新传感器 | [新增 MCP9808 温度传感器 backend](cases/02_new_sensor_driver/README.md) | 设计教程，未实现 |
+| 5 | 估计算法 | [压力深度垂速 Shadow Estimator](cases/05_estimation_algorithm/README.md) | 设计教程，未实现且禁止接入控制 |
+| 6 | 新开发板 | [迁移 Pixhawk 类 STM32F765/ChibiOS 飞控板](cases/06_new_board/README.md) | 设计教程，等待真实硬件资料 |
+
+所有模式号、参数名、参数索引、feature guard 和板卡名在正式编码前都必须重新核对当前 4.7.0 分支、地面站和硬件资料，不能把设计教程误认为已经实现的固件功能。
 
 ## 1. 新增飞行模式
 
 | 编号 | 候选需求 | 最接近的现有模式 | 最小设计边界 | 难度 | 风险 |
 |---|---|---|---|---:|---|
-| M01（推荐） | Precision Manual：限制六轴最大请求，用于近距离低速操控 | Manual | 保留直接操控语义，只增加比例和限幅，不新增 PID | 3 | 高 |
+| [M01（推荐）](cases/01_new_flight_mode/README.md) | Precision Manual：限制六轴最大请求，用于近距离低速操控 | Manual | 保留直接操控语义，只增加比例和限幅，不新增 PID | 3 | 高 |
 | M02 | Precision Stabilize：限制倾角、yaw rate、升沉和水平请求 | Stabilize | 复用姿态控制器，只修改目标约束 | 3 | 高 |
 | M03 | 作业保深模式：保持姿态和深度，明确限制水平控制范围 | AltHold | 复用 AltHold，定义进入、退出、水平输入和接管策略 | 3 | 高 |
 | M04 | 受限控制器验证模式，仅允许在 SITL/拆桨条件运行 | 无直接产品模式 | feature guard、严格 arming 条件、自动退出和一次性告警 | 4 | 极高 |
@@ -40,7 +51,7 @@ M01 最适合做第一个模式教程，但必须先确认“精细操控”需�
 
 | 编号 | 候选需求 | 建议复用的抽象 | 主要职责 | 难度 | 风险 |
 |---|---|---|---|---:|---|
-| S01（推荐） | 增加一款具体 I2C 水温/舱内温度传感器 | `AP_TemperatureSensor` | probe、寄存器读取、换算、超时和健康 | 3 | 低 |
+| [S01（推荐）](cases/02_new_sensor_driver/README.md) | 增加 MCP9808 I2C 水温/舱内温度传感器 | `AP_TemperatureSensor` | probe、寄存器读取、换算、超时和健康 | 3 | 低 |
 | S02 | 增加一款有明确协议的 UART 环境传感器 | 对应现有 frontend 或新 backend | 非阻塞串口、parser、校验、频率和重连 | 3 | 中 |
 | S03 | 增加一款 downward rangefinder | `AP_RangeFinder` | 距离、质量、方向、超时和 SurfTrak 消费 | 4 | 高 |
 | S04 | 增加 GPIO/I/O expander leak sensor backend | `AP_LeakDetector` | wet/dry、反相、debounce、断线和健康 | 3 | 高 |
@@ -66,7 +77,7 @@ S01 风险较低且 `AP_TemperatureSensor` 已是 ArduSub 直接依赖，适合�
 
 | 编号 | 候选需求 | 参数位置 | 教学重点 | 难度 | 风险 |
 |---|---|---|---|---:|---|
-| P01（推荐） | 将 Stabilize yaw 杆回中后当前固定约 250 ms 的过渡时间参数化，默认保持原行为 | `ArduSub/Parameters.*` | 新索引、单位、范围、默认兼容和模式消费 | 1 | 中 |
+| [P01（推荐）](cases/03_new_parameter/README.md) | 将 Stabilize/AltHold/PosHold yaw 杆回中后当前固定约 250 ms 的过渡时间参数化，默认保持原行为 | `ArduSub/Parameters.*` | 新索引、单位、范围、默认兼容和模式消费 | 1 | 中 |
 | P02 | 为 Precision 模式增加各轴最大请求比例 | `ArduSub/Parameters.*` | 参数分组、多个轴约束和默认值 | 2 | 中 |
 | P03 | 为新传感器增加采样率、质量或超时参数 | 对应 frontend `var_info[]` | 公共库参数、backend 配置和 guard | 2 | 中 |
 | P04 | 为估计观测增加噪声或 gate 参数 | 对应 estimator/frontend | 数学单位、范围、旧日志重放和安全默认值 | 3 | 高 |
@@ -87,7 +98,7 @@ P01 改动最小，适合用来建立参数开发的完整模板。
 
 | 编号 | 候选需求 | 建议作用范围 | 关键观测量 | 难度 | 风险 |
 |---|---|---|---|---:|---|
-| C01（推荐） | 为 Precision Manual 增加 forward/lateral/升沉 slew-rate limiter | 只影响新模式 | raw input、shaped input、`dt`、motor request | 2 | 中 |
+| [C01（推荐）](cases/04_control_algorithm/README.md) | 为 Precision Manual 增加 forward/lateral/升沉 slew-rate limiter | 只影响新模式 | raw input、shaped input、`dt`、motor request | 2 | 中 |
 | C02 | 将 forward/lateral 方形输入限制为单位圆 | 先只影响新模式 | 输入向量长度、方向和 limiter flag | 2 | 中 |
 | C03 | 改进 yaw 杆回中到 heading hold 的目标过渡 | Stabilize 或新 Precision 模式 | yaw input、target rate、target heading、actual yaw | 3 | 高 |
 | C04 | 调整深度位置/速度/加速度目标整形 | AltHold/`AC_PosControl` | U 轴目标、速度、加速度、jerk、throttle limit | 4 | 极高 |
@@ -111,7 +122,7 @@ C01 可接在 M01 后实施，因为它不会改变现有模式，影响范围�
 
 | 编号 | 候选需求 | 设计级别 | 推荐验证方式 | 难度 | 风险 |
 |---|---|---|---|---:|---|
-| E01（推荐入门） | 增加一个只记录、不参与控制的压力深度/垂直速度 shadow estimator | 车辆/实验旁路 | 同一日志对比现有估计、静态噪声和升沉响应 | 3 | 低 |
+| [E01（推荐入门）](cases/05_estimation_algorithm/README.md) | 增加一个只记录、不参与控制的压力深度/垂直速度 shadow estimator | 车辆/实验旁路 | 同一日志对比现有估计、静态噪声和升沉响应 | 3 | 低 |
 | E02 | 为新传感器观测增加离群值 gate 和健康状态机 | sensor frontend/输入预处理 | 录包重放、异常值、超时和恢复 | 3 | 中 |
 | E03 | 修改压力深度零偏或 surface 条件下的 bias 补偿 | frontend/AHRS 输入路径 | 长时间静止、上浮/下潜、温漂和 reset | 4 | 高 |
 | E04 | 根据观测质量动态调整 measurement noise/gate | EKF 观测接口或 core | innovation、variance、accept/reject、故障注入 | 5 | 极高 |
@@ -136,7 +147,7 @@ E01 的输出不得接入控制器，只用于建立对照证据。E04/E05 不�
 | 编号 | 候选需求 | 主要改动 | 前置资料 | 难度 | 风险 |
 |---|---|---|---|---:|---|
 | B01（入门） | 在现有兼容板 hwdef 中增加一个已验证 UART/I2C 外设实例 | `hwdef.dat` 和 defaults | 原理图、pin、总线、电平和设备方向 | 3 | 中 |
-| B02（完整案例） | 为同 MCU、参考设计兼容的新板建立 board definition | `hwdef.dat`、`hwdef-bl.dat`、README | 原理图、MCU/晶振、board ID、flash、传感器和输出表 | 5 | 极高 |
+| [B02（完整案例）](cases/06_new_board/README.md) | 为同 MCU、参考设计兼容的新板建立 board definition | `hwdef.dat`、`hwdef-bl.dat`、README | 原理图、MCU/晶振、board ID、flash、传感器和输出表 | 5 | 极高 |
 | B03 | 修改 PWM/DSHOT 输出 timer/DMA 分配 | hwdef 与 ChibiOS 输出资源 | timer/channel/DMA/AF、电气接口和示波器 | 5 | 极高 |
 | B04 | 现有 HAL 无法表达硬件时增加可复用 ChibiOS HAL 能力 | `AP_HAL/AP_HAL_ChibiOS` | 多板复用证据和接口设计 | 5 | 极高 |
 
@@ -193,4 +204,4 @@ E01 的输出不得接入控制器，只用于建立对照证据。E04/E05 不�
 | 估计算法 | 状态/观测模型、噪声假设、时间/坐标、数据集和对照基线 |
 | 开发板 | 原理图、BOM、MCU/晶振、pin/bus/timer/DMA 表、参考板和恢复手段 |
 
-建议先从六类中各选一个真实需求，再为选中的案例编写独立教程。没有实际需求、硬件资料或可验证目标的候选，不进入固件实现。
+六个推荐需求已经各有独立教程。下一步若选择其中某项进入实现，必须先补齐该 README 列出的真实需求、硬件资料和通过标准，再建立独立开发分支；没有可验证输入的候选不进入固件实现。

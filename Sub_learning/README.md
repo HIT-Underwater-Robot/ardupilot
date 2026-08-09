@@ -11,7 +11,13 @@
 | 类型 | 文档 | 内容 |
 |---|---|---|
 | 系统总览 | [ArduSub 系统架构、源码与工程总览](01_source_reading_map.md) | 合并原 00–08：生命周期、调度、逐文件职责、模式、控制器、混控、轨迹、共享库、Waf、测试、安全和板卡移植 |
-| 案例规划 | [六类二次开发教学案例](10_case_catalog.md) | 新模式、新传感器、新参数、控制算法、估计算法和新开发板 |
+| 案例规划 | [六类二次开发教学案例](10_case_catalog.md) | 六类需求的候选范围、难度、风险和推荐顺序 |
+| 案例 01 | [新增 Precision Manual 飞行模式](cases/01_new_flight_mode/README.md) | 模式身份、注册、六轴限幅、安全状态和模式验证 |
+| 案例 02 | [新增 MCP9808 温度传感器 backend](cases/02_new_sensor_driver/README.md) | datasheet、frontend/backend、I²C、健康度、日志和断线测试 |
+| 案例 03 | [新增航向保持过渡时间参数](cases/03_new_parameter/README.md) | 参数 identity、元数据、默认兼容和三模式一致性 |
+| 案例 04 | [为 Precision Manual 增加输入斜率限制](cases/04_control_algorithm/README.md) | 目标整形公式、dt、状态 reset、日志和阶跃测试 |
+| 案例 05 | [压力深度垂速 Shadow Estimator](cases/05_estimation_algorithm/README.md) | log-only 旁路估计、单位/坐标、滤波、重放和准入边界 |
+| 案例 06 | [迁移 Pixhawk 类 STM32F765/ChibiOS 飞控板](cases/06_new_board/README.md) | 原理图差异审计、hwdef、bootloader、bring-up 和拆桨验证 |
 | 已成型案例 | [开发一种新推进器构型](11_new_thruster_frame_development.md) | 从物理布局、6DOF 系数和 `FRAME_CONFIG` 到拆桨台架与系留水池验证 |
 
 ## 推荐使用方法
@@ -19,8 +25,9 @@
 1. 先读总览第 1–5 节，画出输入、估计、模式、控制器、混控和输出数据流。
 2. 再读总览第 6–9 节，掌握 Manual → Stabilize → AltHold → PosHold → Guided 的递进关系。
 3. 阅读第 10–13 节，理解 WSL 构建、验证矩阵、变更安全规则和 Pixhawk 类板卡边界。
-4. 从案例候选表选一个范围小、结果可验证的需求。
-5. 为案例单独建立教程；不把多个功能混进同一个教学提交。
+4. 按案例 03 → 01 → 04 → 02 → 05 → 06 阅读六篇需求教程；这是从低风险软件接口逐步走向硬件 bring-up 的顺序。
+5. 每篇中的代码均为设计伪代码，不代表功能已进入固件；真正实施时仍需单独分支、源码复核和逐级验证。
+6. 为每个实现拆分可独立审查的提交，不把多个功能混进同一个教学提交。
 
 ## 每个案例统一回答的问题
 
