@@ -1,4 +1,22 @@
-# 源码阅读地图：从入口到推进器输出
+# ArduSub 4.7.0 系统架构、源码与工程总览
+
+本篇合并原 00–08 的通用学习内容，作为 `Sub_learning` 的“总”部分。它回答四类问题：
+
+1. ArduSub 从哪里启动，实时任务怎样运行。
+2. 输入、状态估计、模式、控制器、混控和硬件输出怎样分层。
+3. `ArduSub/` 每个文件以及控制主线共享库分别负责什么。
+4. 二次开发应怎样管理参数、依赖、构建、测试、板卡适配和安全回退。
+
+本篇只建立稳定、可复用的系统知识，不绑定某个新传感器或实验功能。后续教学全部从具体需求出发，放在独立案例文档中。
+
+## 推荐学习顺序
+
+| 阶段 | 阅读范围 | 学习成果 |
+|---|---|---|
+| 建立总图 | 第 1–5 节 | 能画出生命周期、跨周期调度和六层控制数据流 |
+| 理解控制 | 第 6–9 节 | 能解释模式递进、姿态/位置控制、轨迹整形和推进器状态机 |
+| 掌握工程方法 | 第 10–13 节 | 能判断代码归属，完成构建测试、安全审查和 Pixhawk 类板卡适配 |
+| 开始案例 | [案例候选表](10_case_catalog.md) | 选择一个小需求，沿完整链路完成实现与验证 |
 
 ## 1. 生命周期入口
 
@@ -181,7 +199,7 @@ AP_Motors6DOF motors;
 | AHRS 前端 | [`AP_AHRS.h`](../libraries/AP_AHRS/AP_AHRS.h)、[`AP_AHRS.cpp`](../libraries/AP_AHRS/AP_AHRS.cpp) | 向车辆提供统一姿态、位置、速度、origin/home、坐标变换和 estimator 状态接口 | `Sub::read_AHRS()`、模式和控制器通过它消费估计结果 |
 | EKF3 前端与核心 | [`AP_NavEKF3.h`](../libraries/AP_NavEKF3/AP_NavEKF3.h)、[`AP_NavEKF3.cpp`](../libraries/AP_NavEKF3/AP_NavEKF3.cpp)、[`AP_NavEKF3_core.h`](../libraries/AP_NavEKF3/AP_NavEKF3_core.h) | 选择/管理 EKF core，融合 IMU、磁罗盘、压力、GPS/ExternalNav 等观测，输出状态和创新健康 | 决定 position/depth/yaw 是否可供 PosHold、Guided、Auto 和 failsafe 使用 |
 | 惯导适配 | [`AP_InertialNav.h`](../libraries/AP_InertialNav/AP_InertialNav.h)、[`AP_InertialNav.cpp`](../libraries/AP_InertialNav/AP_InertialNav.cpp) | 向控制器提供经过 AHRS/EKF 统一的 NEU 位置与速度接口 | 被 Mode 和位置控制器用作导航状态入口 |
-| ExternalNav | [`AP_VisualOdom.h`](../libraries/AP_VisualOdom/AP_VisualOdom.h)、[`AP_VisualOdom.cpp`](../libraries/AP_VisualOdom/AP_VisualOdom.cpp)、[`AP_VisualOdom_MAV.cpp`](../libraries/AP_VisualOdom/AP_VisualOdom_MAV.cpp) | 接收视觉/外部 odometry，处理 backend、延迟、质量、超时和坐标数据 | DVL 等外部融合结果可经 MAVLink ODOMETRY 进入 EKF，而不是在模式里临时积分 |
+| ExternalNav | [`AP_VisualOdom.h`](../libraries/AP_VisualOdom/AP_VisualOdom.h)、[`AP_VisualOdom.cpp`](../libraries/AP_VisualOdom/AP_VisualOdom.cpp)、[`AP_VisualOdom_MAV.cpp`](../libraries/AP_VisualOdom/AP_VisualOdom_MAV.cpp) | 接收视觉/外部 odometry，处理 backend、延迟、质量、超时和坐标数据 | 外部融合结果可经 MAVLink ODOMETRY 进入 EKF；模式只消费经过验证的估计状态 |
 | Rangefinder | [`AP_RangeFinder.h`](../libraries/AP_RangeFinder/AP_RangeFinder.h)、[`AP_RangeFinder.cpp`](../libraries/AP_RangeFinder/AP_RangeFinder.cpp) | 管理测距 backend、方向、质量、状态和距离数据 | 为 SurfTrak、terrain 和离底状态提供原始测距入口 |
 
 #### 5.7.2 姿态、位置与轨迹控制
@@ -221,24 +239,356 @@ AP_Motors6DOF motors;
 
 这组表格的使用方法不是一次读完全部文件，而是先在 `ArduSub/` 表中找到车辆策略，再沿“向下一层交付什么”进入对应共享库。到达实际动态类型、健康检查、限幅和 SRV/HAL 输出后即可停止横向扩散。
 
-## 6. 库名前缀只表示职责线索
+## 6. 用模式递进理解控制体系
 
-- `AP_*`：跨车辆基础设施、传感器、状态估计、任务、HAL 上层和通用库。
-- `AC_*`：主要源于 Copter 的姿态、位置、航点和避障控制，也被 ArduSub 复用。
-- `AR_*`：主要面向 Rover，不应为了命名统一而引入 ArduSub。
+初学者不要先读 AUTO。推荐按 `Manual -> Stabilize -> AltHold -> PosHold -> Guided`，每次只观察新增的一层能力。
 
-前缀不是严格依赖边界。[ArduSub/wscript](../ArduSub/wscript) 明确列出 `AC_AttitudeControl`、`AC_WPNav`、`AP_InertialNav`、`AP_Motors` 等直接库，并叠加 `ap_common_vehicle_libraries()` 的公共依赖。判断依赖必须看 `wscript`、include、feature guard 和链接结果。
+| 模式 | 驾驶输入/外部目标 | 新增闭环 | 主要输出路径 | 核心风险 |
+|---|---|---|---|---|
+| Manual | 六个驾驶通道 | 无常规姿态 rate controller | 归一化输入直接写入 motors | 通道、方向、混控、arming |
+| Stabilize | roll/pitch 姿态、yaw rate/hold、手动平移 | 姿态外环 + 角速度内环 | `AC_AttitudeControl_Sub -> AP_Motors6DOF` | 角度/角速度单位、松杆航向、饱和 |
+| AltHold | 姿态、升沉速度、手动水平 | 增加垂直位置/速度/加速度闭环 | `AC_PosControl U -> throttle` | Up/Down 符号、深度健康、surface/bottom |
+| PosHold | body forward/lateral 速度意图 | 增加水平 NE 位置/速度闭环 | body -> NE -> PosControl -> body 力 | yaw 坐标转换、位置失效和目标重置 |
+| Guided | GCS 给定位置/速度/姿态目标 | 按目标类型选择控制器 | MAVLink -> Guided submode -> WPNav/PosControl | frame、时间戳、3 秒超时、限幅 |
 
-## 7. 每次阅读使用同一张记录表
+### 6.1 Manual：最短输入链
 
-研究一个行为时，至少记录：
+[`ModeManual::run()`](../ArduSub/mode_manual.cpp) 是检查 RC/joystick、归一化和混控方向的最短路径：
 
-1. 输入来源和有效范围。
-2. 当前模式与进入条件。
-3. 坐标系、正方向和单位。
-4. 目标类型及其限制器。
-5. 使用的状态估计量和有效性检查。
-6. 控制器输出怎样转换到 roll/pitch/yaw/throttle/forward/lateral。
-7. armed、interlock、failsafe、safety switch 和 spool 状态。
-8. 最终 SRV 功能与物理推进器通道。
-9. 能证明结论的源码函数、SITL 测试或日志字段。
+```text
+roll/pitch/yaw/throttle/forward/lateral
+    -> motors.set_*
+    -> AP_Motors6DOF
+```
+
+Manual 适合定位输入和 frame 问题，但不能代表稳定模式的闭环行为。
+
+### 6.2 Stabilize：姿态目标和 rate controller
+
+roll/pitch 被换算成目标倾角；yaw 有杆量时给角速度，松杆后经过短暂减速再保持航向。fast loop 的 `rate_controller_run()` 使用 gyro 反馈生成 roll/pitch/yaw 控制量。调手感时应区分输入映射、姿态外环、rate PID、滤波和 motor limit。
+
+### 6.3 AltHold：垂直级联控制
+
+[`ModeAlthold::run()`](../ArduSub/mode_althold.cpp) 当前分为：
+
+```text
+run_pre() -> control_depth() -> run_post()
+```
+
+驾驶员 throttle 被解释为升沉速度，控制器再维护垂直速度和位置目标。看到 `D_*` 命名和 `get_position_z_up_cm()` 时必须逐个核对轴和正方向，不能根据字母猜符号。
+
+### 6.4 PosHold：body 输入与 NE 闭环
+
+```text
+pilot forward/lateral
+    -> body velocity
+    -> ahrs.body_to_earth2D()
+    -> North/East target
+    -> AC_PosControl
+    -> translate_pos_control_rp()
+    -> body lateral/forward
+```
+
+同一个 North 误差在不同 yaw 下会映射成不同的艇体前后/左右推力。理解 PosHold 的关键不是先看 PID，而是先把两次坐标转换画清楚。
+
+### 6.5 Guided：四种目标接口
+
+| Guided 子模式 | 目标 | 主要消费者 |
+|---|---|---|
+| `Guided_WP` | 位置/航点 | `AC_WPNav` |
+| `Guided_Velocity` | 速度 | `AC_PosControl` velocity input |
+| `Guided_PosVel` | 位置 + 速度 | `AC_PosControl` position/velocity input |
+| `Guided_Angle` | 姿态 + 升沉速度 | 姿态与垂直控制器 |
+
+位置、速度和姿态请求都有各自的更新时刻与超时处理。修改消息行为时要从消息 frame、mask 和单位一直追到目标整形与最终 motors 输出。
+
+## 7. 推进器状态机、6DOF 混控与输出
+
+### 7.1 模式只提出 desired spool state
+
+模式调用 `set_desired_spool_state()` 时提出：
+
+- `SHUT_DOWN`：请求停止。
+- `GROUND_IDLE`：请求低能量待命。
+- `THROTTLE_UNLIMITED`：请求进入正常推力范围。
+
+这不是最终许可。`AP_MotorsMulticopter` 会用 armed、interlock、safety、safe-time 和 block 条件推进 actual spool state：
+
+```text
+SHUT_DOWN
+    <-> GROUND_IDLE
+    <-> SPOOLING_UP / SPOOLING_DOWN
+    <-> THROTTLE_UNLIMITED
+```
+
+### 7.2 当前车辆输出链
+
+[`Sub::motors_output()`](../ArduSub/motors.cpp) 处理 motor-test/normal path、interlock 和 SRV cork/push，并调用 `motors.output()`。当前 4.7.0 还会在调用前清除 ArduSub spool-up block，这是基线逻辑，不能脱离父类状态机单独删除。
+
+`motors.output()` 继续执行：
+
+1. throttle filter 和电池/推力状态更新。
+2. `output_logic()` 推进 spool 状态。
+3. `output_armed_stabilizing()` 计算受允许的控制推力。
+4. frame 补偿、6DOF 混控和饱和限制。
+5. `output_to_motors()` 转换为通道输出。
+6. SRV/HAL 写出。
+
+### 7.3 六自由度系数
+
+`AP_Motors6DOF::add_motor_raw_6dof()` 为每个推进器记录：
+
+```text
+roll, pitch, yaw, throttle(vertical), forward, lateral
+```
+
+检查推进器方向时要同时核对 `FRAME_CONFIG`、motor number、testing order、六列 factor、`MOT_n_DIRECTION`、`SERVOx_FUNCTION`、接线和 ESC 中值/范围。
+
+### 7.4 输出故障诊断顺序
+
+```text
+输入
+ -> 模式目标
+ -> 状态估计
+ -> 控制器目标/输出
+ -> desired/actual spool state
+ -> 6DOF mixer/limit
+ -> SRV function/PWM
+ -> HAL timer/DMA/pin
+ -> ESC/接线/推进器
+```
+
+不能通过绕过 arming、interlock、failsafe 或 safety 来验证最后一级。
+
+## 8. 轨迹、目标整形与 Guided
+
+模式文件主要选择目标和控制器。速度、加速度、jerk 与 S 曲线/输入整形主要位于 `AC_WPNav`、`AC_PosControl` 和公共 shaping 函数，不在 `mode_auto.cpp` 中集中实现。
+
+### 8.1 先确定目标类型
+
+| 目标 | 常见入口 | 必查约束 |
+|---|---|---|
+| 位置 | Guided WP、mission waypoint | 最大速度、加速度、jerk、停止点和到达判定 |
+| 速度 | Guided Velocity、PosHold 输入 | 加速度、jerk、命令超时和位置稳定状态 |
+| 位置 + 速度 | Guided PosVel | 两种目标一致性、积分和超时后的速度归零 |
+| 加速度 | `AC_PosControl::input_*accel*` | jerk、姿态能力和 motor saturation |
+| 姿态 + 升沉 | Guided Angle | 倾角、升沉速度、深度健康和消息超时 |
+
+“向前移动”可以是 body-forward 速度、NE 速度、NE 位置或 waypoint；它们的坐标和停止行为不同。
+
+### 8.2 记录轨迹行为的证据
+
+- 外部命令时间戳和频率。
+- 原始及整形后的 position/velocity/acceleration。
+- 实际位置、速度、姿态和 yaw。
+- 速度、加速度、jerk、snap 与倾角限制。
+- controller limit、integrator 和 motor limit flags。
+- 命令超时、position health 变化和目标重置。
+
+SITL 可以证明软件路径与约束，不能替代真实水动力、推进器死区和机体耦合验证。
+
+## 9. 公共库管理与代码归属
+
+### 9.1 前缀是职责线索，不是依赖边界
+
+- `AP_*`：跨车辆基础设施、传感器、估计、任务和 HAL 上层。
+- `AC_*`：主要源于 Copter 的姿态、位置、航点等控制库，也被 Sub 复用。
+- `AR_*`：主要面向 Rover，不应为了命名统一引入 ArduSub。
+
+最终依赖证据来自 `wscript`、include、feature guard、Waf 任务图和链接结果。
+
+### 9.2 需求应该放在哪一层
+
+| 需求 | 首选位置 | 原因 |
+|---|---|---|
+| 单一 Sub 模式的进入、目标和降级 | `ArduSub/mode_*.cpp` | 属于车辆策略 |
+| 多个模式共享的车辆坐标换算 | `ArduSub/Attitude.cpp` 或明确车辆辅助接口 | 仍依赖 Sub 语义 |
+| 通用姿态、位置或轨迹算法 | 现有 `AC_*` | 算法不应知道具体模式 |
+| 通用传感器设备 | 对应 `AP_*` frontend/backend | 数据语义与车辆无关 |
+| MCU 引脚、总线、timer 和设备实例 | `AP_HAL_ChibiOS/hwdef/<board>/` | 属于硬件描述 |
+| 通用 MAVLink 行为 | `GCS_MAVLink` 或现有消息入口 | 协议跨车辆 |
+| 伴随计算机程序 | 独立仓库 | 不属于实时飞控固件 |
+
+### 9.3 最小复用顺序
+
+```text
+配置已有能力
+    -> ArduSub 薄适配
+    -> 小幅扩展现有公共 API
+    -> 为现有 frontend 增加 backend
+    -> 最后才新建公共库
+```
+
+新 sensor backend 应保持 frontend 的坐标、单位、时间、质量和健康语义；消费者依赖 frontend，不依赖具体设备型号。
+
+### 9.4 公共库安全规则
+
+- 不改变已有 `AP_GROUPINFO` 索引。
+- guard 关闭时声明、实现、日志和调用点仍可编译。
+- 核心组件不能依赖可选组件。
+- 新依赖不能反向 include `ArduSub/Sub.h`。
+- 删除依赖必须有 Waf dependency closure、固件尺寸、SITL 和目标板证据。
+- parser、frontend/backend、consumer integration、SITL、Pixhawk4 和硬件测试分别覆盖不同风险。
+
+## 10. WSL 构建、测试与发布
+
+### 10.1 构建系统
+
+- 根 `waf`：启动器。
+- `modules/waf`：通用 Waf 引擎。
+- 根 `wscript`：板卡、工具链和全局配置。
+- `Tools/ardupilotwaf`：车辆、库、板卡和固件规则。
+- `ArduSub/wscript`：Sub 静态库、程序和直接依赖。
+
+禁止使用 `sudo ./waf`。`build/<board>/` 是可再生产物，不是精简源码。
+
+### 10.2 基线命令
+
+```bash
+./waf configure --board sitl
+./waf sub -j"$(nproc)"
+
+./waf configure --board Pixhawk4
+./waf sub -j"$(nproc)"
+
+Tools/autotest/autotest.py build.Sub test.Sub
+```
+
+输出分别位于 `build/sitl/bin/ardusub` 和 `build/Pixhawk4/bin/ardusub.apj`。
+
+### 10.3 默认验证矩阵
+
+| 变更 | 最低验证 |
+|---|---|
+| Markdown | 链接、表格/围栏、`git diff --check` |
+| 参数/非控制逻辑 | SITL build、相关测试、Pixhawk4 build、参数兼容检查 |
+| 模式/控制算法 | SITL build、针对性 autotest、日志、Pixhawk4 build |
+| AP_Motors/failsafe | 上述全部，加拆桨/隔离台架和回退固件 |
+| 传感器 backend | parser/unit、frontend health/timeout、consumer integration、目标板 build |
+| hwdef/新板卡 | bootloader、board build、接口电气验证和逐级上电 |
+
+每次记录精确 SHA、环境、命令、退出状态、固件路径、尺寸、已执行/未执行测试、硬件条件和回退方式。
+
+## 11. 安全变更工作流
+
+### 11.1 开始前冻结事实
+
+```bash
+git status --short --branch
+git rev-parse HEAD
+git submodule status
+```
+
+区分任务修改、用户已有内容、未跟踪资料和构建输出。不得覆盖或清理不属于当前任务的内容。
+
+### 11.2 先画真实数据链
+
+```text
+input/message/sensor
+ -> mode selection/init
+ -> target generation
+ -> coordinate/unit conversion
+ -> attitude/position controller
+ -> desired/actual spool state
+ -> 6DOF mixer/limits
+ -> SRV/HAL
+ -> log/test evidence
+```
+
+只修改最小必要节点，不为一个小需求重构整条控制体系。
+
+### 11.3 变更规则
+
+- 参数：新增使用未占用索引，完整记录范围、单位、默认值和持久化兼容。
+- Feature：保留 guard，验证 enabled/disabled，核心不依赖可选组件。
+- HAL：板级特性进入 hwdef/HAL，不在模式里判断板卡名或写 GPIO。
+- 子模块：不直接修改 `modules/`。
+- 提交：一项逻辑变更一个提交，不混入全局格式化或无关移动。
+- 测试：未执行的项目明确写“未执行”，不能推测通过。
+
+### 11.4 推进器实机红线
+
+- 拆桨、拆除负载或物理隔离推进器。
+- 准备 hardware safety、disarm、通信中断和独立断电。
+- 一次只验证一个通道，记录功能、方向、中性、最小和最大值。
+- 完成空载后再进入低功率系留水池。
+
+### 11.5 回退
+
+回退至少包含前一固件 SHA、参数备份、触发条件、负责人，以及通道方向/failsafe 的复核步骤。不要用 `git reset --hard`、`git checkout --`、`git clean` 或强制推送代替产品回退方案。
+
+## 12. Pixhawk 类 STM32/ChibiOS 板卡移植
+
+本仓库只把 Pixhawk 类实时飞控作为固件目标。Linux SBC 默认是伴随计算机，不在这里扩展成飞控主控。
+
+### 12.1 设计输入
+
+- MCU、封装、flash/RAM、时钟和启动方式。
+- 电源、brownout、watchdog、reset、hardware safety 和 SWD 恢复。
+- IMU、罗盘、压力/深度、存储和总线拓扑。
+- UART/I2C/SPI/CAN/USB 引脚与 DMA 冲突。
+- PWM/DSHOT timer、channel、DMA、IO 电平和 ESC 接口。
+
+### 12.2 Board definition
+
+```text
+libraries/AP_HAL_ChibiOS/hwdef/<board>/
+    hwdef.dat
+    hwdef-bl.dat
+    defaults.parm       # 仅在确有板级默认需求时
+    README.md
+```
+
+选择同 MCU 和相似传感器拓扑的参考板，但必须逐项对照原理图。
+
+### 12.3 构建顺序
+
+```bash
+./waf configure --board <board> --bootloader
+./waf bootloader
+
+./waf configure --board <board>
+./waf sub -j"$(nproc)"
+```
+
+### 12.4 分阶段验证
+
+1. SWD、reset、bootloader 和 console。
+2. 时钟、USB、flash、参数存储和 SD。
+3. I2C/SPI/UART/CAN 电平、时钟和设备枚举。
+4. IMU 方向、采样率、DRDY、温度和振动。
+5. 压力/深度、罗盘和其他传感器。
+6. RC/MAVLink、hardware safety、arming 和 failsafe。
+7. 示波器验证输出，不接推进器负载。
+8. 拆桨逐通道测试。
+9. 低功率系留水池回归。
+
+HAL/hwdef 应解决绝大多数硬件适配。只有现有抽象确实无法表达硬件能力时，才评估可复用的 HAL 扩展。
+
+## 13. 阅读记录与掌握标准
+
+研究任何行为时，使用同一张记录表：
+
+| 项目 | 必须记录 |
+|---|---|
+| 输入 | 来源、范围、频率、超时 |
+| 状态 | 估计量、健康条件、reset |
+| 坐标 | body/NE/NED/Up/Down、正方向 |
+| 单位 | cm、cm/s、rad、centi-degree、归一化力等 |
+| 模式 | 进入条件、`init()`、`run()`、退出和降级 |
+| 目标 | position/velocity/acceleration/attitude/rate/force |
+| 控制器 | 限速、滤波、integrator、saturation |
+| Motors | desired/actual spool、armed/interlock、mix factors |
+| 输出 | SRV function、PWM/协议、物理通道 |
+| 证据 | 源码函数、日志、SITL、板卡和实机结果 |
+
+开始具体案例前，应能独立回答：
+
+- `flightmode->run()` 如何分派到具体模式？
+- rate controller 为什么在调度顺序中先于本周期 mode update？
+- PosHold 为什么既使用 NE，又输出 body forward/lateral？
+- desired spool state 为什么不等于立即允许 PWM？
+- `FRAME_CONFIG` 如何选择 6DOF 系数表？
+- 新模式、传感器 backend、控制算法、参数和板卡定义分别应放在哪一层？
+
+达到这些标准后，不再继续横向阅读目录，而应从[案例候选表](10_case_catalog.md)选择一个小需求完成端到端实践。

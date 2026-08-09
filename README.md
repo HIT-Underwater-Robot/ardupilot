@@ -84,4 +84,4 @@ build/sitl/bin/ardusub
 
 ## 二次开发资料
 
-仓库内的 [`Sub_learning/`](Sub_learning/README.md) 已按“系统总览 → 分层控制主线 → 新模式/新推进器构型实践 → 构建测试与板卡移植”组织为初学者课程。课程包含跨周期调度模型、Manual 到 Guided 的递进阅读、新模式完整生命周期、DVL/ExternalNav 案例和 6DOF 混控开发方法。
+仓库内的 [`Sub_learning/`](Sub_learning/README.md) 采用“一份系统总览 + 多个需求案例”的教学结构。总览合并了系统架构、逐文件职责、Manual 到 Guided 的控制主线、6DOF 输出、共享库、构建测试和板卡移植；案例部分从参数、模式、传感器、控制算法等具体小需求出发逐步扩展。
