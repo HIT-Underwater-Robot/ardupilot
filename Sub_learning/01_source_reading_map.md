@@ -405,6 +405,7 @@ SITL 可以证明软件路径与约束，不能替代真实水动力、推进器
 | 多个模式共享的车辆坐标换算 | `ArduSub/Attitude.cpp` 或明确车辆辅助接口 | 仍依赖 Sub 语义 |
 | 通用姿态、位置或轨迹算法 | 现有 `AC_*` | 算法不应知道具体模式 |
 | 通用传感器设备 | 对应 `AP_*` frontend/backend | 数据语义与车辆无关 |
+| 通用状态或观测融合算法 | `AP_AHRS/AP_NavEKF3` 的对应 frontend/core | 估计模型不应依赖某个 Sub 模式，修改前必须有数学与数据证据 |
 | MCU 引脚、总线、timer 和设备实例 | `AP_HAL_ChibiOS/hwdef/<board>/` | 属于硬件描述 |
 | 通用 MAVLink 行为 | `GCS_MAVLink` 或现有消息入口 | 协议跨车辆 |
 | 伴随计算机程序 | 独立仓库 | 不属于实时飞控固件 |
@@ -589,6 +590,6 @@ HAL/hwdef 应解决绝大多数硬件适配。只有现有抽象确实无法表�
 - PosHold 为什么既使用 NE，又输出 body forward/lateral？
 - desired spool state 为什么不等于立即允许 PWM？
 - `FRAME_CONFIG` 如何选择 6DOF 系数表？
-- 新模式、传感器 backend、控制算法、参数和板卡定义分别应放在哪一层？
+- 新模式、传感器 backend、参数、控制算法、估计算法和板卡定义分别应放在哪一层？
 
 达到这些标准后，不再继续横向阅读目录，而应从[案例候选表](10_case_catalog.md)选择一个小需求完成端到端实践。
