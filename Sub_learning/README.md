@@ -22,6 +22,8 @@
 | 5 | [WSL 构建、测试与发布](05_build_test_and_release.md) | 怎样构建 SITL/Pixhawk4，怎样记录真实验证结果 |
 | 6 | [安全变更工作流](06_safe_change_workflow.md) | 二次开发从问题定义到审查、验证、回退的完整流程 |
 | 7 | [Pixhawk 类板卡移植](07_pixhawk_board_porting.md) | 自绘 STM32/ChibiOS 飞控板怎样通过 hwdef 接入 |
+| 8 | [公共库管理](08_shared_library_management.md) | 怎样判断复用、扩展或新增 `libraries/` 组件 |
+| 9 | [DVL 功能开发示范](09_dvl_feature_case_study.md) | 怎样把新传感器需求拆成数据链、模式、安全和测试 |
 
 ## 一条主阅读链
 

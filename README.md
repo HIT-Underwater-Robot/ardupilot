@@ -84,4 +84,4 @@ build/sitl/bin/ardusub
 
 ## 二次开发资料
 
-仓库内的 [`Sub_learning/`](Sub_learning/README.md) 汇总了本基线的源码阅读路径、飞行模式与控制链、推进器状态机、轨迹整形、构建测试、变更流程和 Pixhawk 类板卡移植方法。
+仓库内的 [`Sub_learning/`](Sub_learning/README.md) 汇总了本基线的源码阅读路径、飞行模式与控制链、推进器状态机、轨迹整形、公共库管理、构建测试、变更流程、Pixhawk 类板卡移植方法和 DVL 功能开发示范。
