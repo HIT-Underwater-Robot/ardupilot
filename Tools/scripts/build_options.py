@@ -41,6 +41,8 @@ class Feature:
 # dependencies  : Comma-separated list of feature labels that this feature depends on
 #                 (a single string with commas and no spaces). e.g., 'dependency1,dependency2'.
 BUILD_OPTIONS = [
+    Feature('Sub', 'SUB_LEARNING_DEMOS', 'AP_SUB_LEARNING_DEMOS_ENABLED',
+            'Enable learning-only ArduSub mode, DVL and SMC demos', 1, None),
     Feature('AHRS', 'EKF3', 'HAL_NAVEKF3_AVAILABLE', 'Enable EKF3', 1, None),
     Feature('AHRS', 'EKF2', 'HAL_NAVEKF2_AVAILABLE', 'Enable EKF2', 0, None),
     Feature('AHRS', 'AHRS_EXT', 'AP_EXTERNAL_AHRS_ENABLED', 'Enable External AHRS', 0, None),

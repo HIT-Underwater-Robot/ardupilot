@@ -116,7 +116,7 @@ const AP_Param::Info Sub::var_info[] = {
     // @Param: FLTMODE1
     // @DisplayName: Flight Mode 1
     // @Description: Flight mode when pwm of Flightmode channel(FLTMODE_CH) is <= 1230
-    // @Values: 0:Stabilize,1:Acro,2:AltHold,3:Auto,4:Guided,7:Circle,9:Surface,16:PosHold,19:Manual,20:Motor Detect,21:SurfTrak
+    // @Values: 0:Stabilize,1:Acro,2:AltHold,3:Auto,4:Guided,7:Circle,9:Surface,16:PosHold,19:Manual,20:Motor Detect,21:SurfTrak,22:Precision Manual Demo,23:SMC Stabilize Demo
     // @User: Standard
     GSCALAR(flight_mode1, "FLTMODE1",               (uint8_t)FLIGHT_MODE_1),
 
@@ -610,6 +610,12 @@ const AP_Param::Info Sub::var_info[] = {
     // @Group: BARO
     // @Path: ../libraries/AP_Baro/AP_Baro.cpp
     GOBJECT(barometer, "BARO", AP_Baro),
+
+#if AP_SUB_LEARNING_DEMOS_ENABLED
+    // @Group: DVL_
+    // @Path: demo_dvl.cpp
+    GOBJECT(demo_dvl, "DVL_", DemoDVL),
+#endif
 
     // GPS driver
     // @Group: GPS

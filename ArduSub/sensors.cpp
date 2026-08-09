@@ -15,6 +15,28 @@ void Sub::read_barometer()
     }
 }
 
+#if AP_SUB_LEARNING_DEMOS_ENABLED
+void Sub::update_demo_dvl()
+{
+    demo_dvl.update();
+}
+
+void Sub::send_demo_dvl()
+{
+    if (!demo_dvl.telemetry_due()) {
+        return;
+    }
+
+    const DemoDVL::State &state = demo_dvl.state();
+    gcs().send_named_float("DVL_VX", state.velocity_body_mps.x);
+    gcs().send_named_float("DVL_VY", state.velocity_body_mps.y);
+    gcs().send_named_float("DVL_VZ", state.velocity_body_mps.z);
+    gcs().send_named_float("DVL_QUAL", static_cast<float>(state.quality));
+    gcs().send_named_float("DVL_SEQ", static_cast<float>(state.sequence));
+    gcs().send_named_float("DVL_HLTH", demo_dvl.healthy() ? 1.0f : 0.0f);
+}
+#endif
+
 void Sub::init_rangefinder()
 {
 #if AP_RANGEFINDER_ENABLED

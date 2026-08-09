@@ -50,7 +50,11 @@ public:
         POSHOLD =      16,  // automatic position hold with manual override, with automatic throttle
         MANUAL =       19,  // Pass-through input with no stabilization
         MOTOR_DETECT = 20,  // Automatically detect motors orientation
-        SURFTRAK =     21   // Track distance above seafloor (hold range)
+        SURFTRAK =     21,  // Track distance above seafloor (hold range)
+#if AP_SUB_LEARNING_DEMOS_ENABLED
+        PRECISION_MANUAL = 22, // Learning-only scaled manual control
+        SMC_STABILIZE = 23,    // Learning-only Stabilize outer loop with SMC rate control
+#endif
         // Mode number 30 reserved for "offboard" for external/lua control.
     };
 
@@ -141,6 +145,26 @@ protected:
     Mode::Number number() const override { return Mode::Number::MANUAL; }
 };
 
+#if AP_SUB_LEARNING_DEMOS_ENABLED
+class ModePrecisionManual : public Mode
+{
+public:
+    using Mode::Mode;
+
+    void run() override;
+    bool init(bool ignore_checks) override;
+    bool requires_GPS() const override { return false; }
+    bool requires_altitude() const override { return false; }
+    bool allows_arming(bool from_gcs) const override { return true; }
+    bool is_autopilot() const override { return false; }
+
+protected:
+    const char *name() const override { return "Precision Manual"; }
+    const char *name4() const override { return "PRMN"; }
+    Mode::Number number() const override { return Mode::Number::PRECISION_MANUAL; }
+};
+#endif
+
 
 class ModeAcro : public Mode
 {
@@ -186,6 +210,19 @@ protected:
     const char *name4() const override { return "STAB"; }
     Mode::Number number() const override { return Mode::Number::STABILIZE; }
 };
+
+#if AP_SUB_LEARNING_DEMOS_ENABLED
+class ModeSMCStabilize : public ModeStabilize
+{
+public:
+    using ModeStabilize::ModeStabilize;
+
+protected:
+    const char *name() const override { return "SMC Stabilize"; }
+    const char *name4() const override { return "SMCD"; }
+    Mode::Number number() const override { return Mode::Number::SMC_STABILIZE; }
+};
+#endif
 
 
 class ModeAlthold : public Mode

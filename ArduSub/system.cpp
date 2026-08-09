@@ -47,6 +47,10 @@ void Sub::init_ardupilot()
     // setup telem slots with serial ports
     gcs().setup_uarts();
 
+#if AP_SUB_LEARNING_DEMOS_ENABLED
+    demo_dvl.init();
+#endif
+
     // initialise rc channels including setting mode
     rc().convert_options(RC_Channel::AUX_FUNC::ARMDISARM_UNUSED, RC_Channel::AUX_FUNC::ARMDISARM);
     rc().init();

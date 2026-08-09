@@ -29,6 +29,14 @@ Mode *Sub::mode_from_mode_num(const Mode::Number mode)
     case Mode::Number::MANUAL:
         ret = &mode_manual;
         break;
+#if AP_SUB_LEARNING_DEMOS_ENABLED
+    case Mode::Number::PRECISION_MANUAL:
+        ret = &mode_precision_manual;
+        break;
+    case Mode::Number::SMC_STABILIZE:
+        ret = &mode_smc_stabilize;
+        break;
+#endif
     case Mode::Number::STABILIZE:
         ret = &mode_stabilize;
         break;
@@ -108,6 +116,12 @@ bool Sub::set_mode(Mode::Number mode, ModeReason reason)
         LOGGER_WRITE_ERROR(LogErrorSubsystem::FLIGHT_MODE, LogErrorCode(mode));
         return false;
     }
+
+#if AP_SUB_LEARNING_DEMOS_ENABLED
+    if (control_mode == Mode::Number::SMC_STABILIZE || mode == Mode::Number::SMC_STABILIZE) {
+        attitude_control.reset_rate_controller_I_terms();
+    }
+#endif
 
     // perform any cleanup required by previous flight mode
     exit_mode(flightmode, new_flightmode);

@@ -250,6 +250,9 @@ public:
         k_param_pilot_speed,
         k_param_failsafe_throttle,
         k_param_failsafe_throttle_value,
+#if AP_SUB_LEARNING_DEMOS_ENABLED
+        k_param_demo_dvl = 245,
+#endif
         k_param_vehicle = 257, // vehicle common block of parameters
         k_param__gcs = 258,
     };

@@ -110,6 +110,9 @@ const AP_Scheduler::Task Sub::scheduler_tasks[] = {
     SCHED_TASK(rc_loop,              50,    130,  3),
 #endif
     SCHED_TASK_CLASS(AP_GPS, &sub.gps, update, 50, 200,   6),
+#if AP_SUB_LEARNING_DEMOS_ENABLED
+    SCHED_TASK(update_demo_dvl,       50,    150,   9),
+#endif
 #if AP_OPTICALFLOW_ENABLED
     SCHED_TASK_CLASS(AP_OpticalFlow,          &sub.optflow,             update,         200, 160,   9),
 #endif
@@ -124,6 +127,9 @@ const AP_Scheduler::Task Sub::scheduler_tasks[] = {
     SCHED_TASK(one_hz_loop,            1,    100,  33),
     SCHED_TASK_CLASS(GCS,                 (GCS*)&sub._gcs,   update_receive,     400, 180,  36),
     SCHED_TASK_CLASS(GCS,                 (GCS*)&sub._gcs,   update_send,        400, 550,  39),
+#if AP_SUB_LEARNING_DEMOS_ENABLED
+    SCHED_TASK(send_demo_dvl,         10,    250,  42),
+#endif
 #if HAL_MOUNT_ENABLED
     SCHED_TASK_CLASS(AP_Mount,            &sub.camera_mount, update,              50,  75,  45),
 #endif
@@ -181,9 +187,21 @@ void Sub::run_rate_controller()
     pos_control.set_dt_s(last_loop_time_s);
 
     //don't run rate controller in manual or motordetection modes
-    if (control_mode != Mode::Number::MANUAL && control_mode != Mode::Number::MOTOR_DETECT) {
+    if (control_mode != Mode::Number::MANUAL &&
+#if AP_SUB_LEARNING_DEMOS_ENABLED
+        control_mode != Mode::Number::PRECISION_MANUAL &&
+#endif
+        control_mode != Mode::Number::MOTOR_DETECT) {
         // run low level rate controllers that only require IMU data and set loop time
+#if AP_SUB_LEARNING_DEMOS_ENABLED
+        if (control_mode == Mode::Number::SMC_STABILIZE) {
+            attitude_control.rate_controller_run_smc_demo();
+        } else {
+            attitude_control.rate_controller_run();
+        }
+#else
         attitude_control.rate_controller_run();
+#endif
     }
 }
 

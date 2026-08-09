@@ -19,6 +19,7 @@
 | 案例 05 | [压力深度垂速 Shadow Estimator](cases/05_estimation_algorithm/README.md) | log-only 旁路估计、单位/坐标、滤波、重放和准入边界 |
 | 案例 06 | [迁移 Pixhawk 类 STM32F765/ChibiOS 飞控板](cases/06_new_board/README.md) | 原理图差异审计、hwdef、bootloader、bring-up 和拆桨验证 |
 | 已成型案例 | [开发一种新推进器构型](11_new_thruster_frame_development.md) | 从物理布局、6DOF 系数和 `FRAME_CONFIG` 到拆桨台架与系留水池验证 |
+| 实验代码 | [四个架构教学 demo](experimental_demos/README.md) | 仅在 `learning/four-architecture-demos` 分支实现：新模式、虚拟 DVL、串口参数与转发、SMC 速率内环 |
 
 ## 推荐使用方法
 
@@ -26,7 +27,7 @@
 2. 再读总览第 6–9 节，掌握 Manual → Stabilize → AltHold → PosHold → Guided 的递进关系。
 3. 阅读第 10–13 节，理解 WSL 构建、验证矩阵、变更安全规则和 Pixhawk 类板卡边界。
 4. 按案例 03 → 01 → 04 → 02 → 05 → 06 阅读六篇需求教程；这是从低风险软件接口逐步走向硬件 bring-up 的顺序。
-5. 每篇中的代码均为设计伪代码，不代表功能已进入固件；真正实施时仍需单独分支、源码复核和逐级验证。
+5. `cases/` 中的代码是设计伪代码；`experimental_demos/` 对应实验分支上的真实代码。两者都未进入 `master`，更不代表已经通过实机准入。
 6. 为每个实现拆分可独立审查的提交，不把多个功能混进同一个教学提交。
 
 ## 每个案例统一回答的问题

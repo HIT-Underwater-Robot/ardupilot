@@ -76,6 +76,10 @@
 #include "mode.h"
 #include "script_button.h"
 
+#if AP_SUB_LEARNING_DEMOS_ENABLED
+#include "demo_dvl.h"
+#endif
+
 
 #include <AP_OpticalFlow/AP_OpticalFlow.h>     // Optical Flow library
 
@@ -111,6 +115,10 @@ public:
     friend class RC_Channel_Sub;
     friend class Mode;
     friend class ModeManual;
+#if AP_SUB_LEARNING_DEMOS_ENABLED
+    friend class ModePrecisionManual;
+    friend class ModeSMCStabilize;
+#endif
     friend class ModeStabilize;
     friend class ModeAcro;
     friend class ModeAlthold;
@@ -264,6 +272,10 @@ private:
 
     // Baro sensor instance index of the external water pressure sensor
     uint8_t depth_sensor_idx;
+
+#if AP_SUB_LEARNING_DEMOS_ENABLED
+    DemoDVL demo_dvl;
+#endif
 
     AP_Motors6DOF motors;
 
@@ -511,6 +523,10 @@ private:
     void clear_input_hold();
     bool jsbutton_function_is_assigned(JSButton::button_function_t function);
     void read_barometer(void);
+#if AP_SUB_LEARNING_DEMOS_ENABLED
+    void update_demo_dvl();
+    void send_demo_dvl();
+#endif
     void init_rangefinder(void);
     void read_rangefinder(void);
     void terrain_update();
@@ -620,6 +636,10 @@ private:
 
     Mode *flightmode;
     ModeManual mode_manual;
+#if AP_SUB_LEARNING_DEMOS_ENABLED
+    ModePrecisionManual mode_precision_manual;
+    ModeSMCStabilize mode_smc_stabilize;
+#endif
     ModeStabilize mode_stabilize;
     ModeAcro mode_acro;
     ModeAlthold mode_althold;
