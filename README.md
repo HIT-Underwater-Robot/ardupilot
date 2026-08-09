@@ -1,8 +1,17 @@
-# ArduSub-focused ArduPilot
+# ArduSub 4.7.0 for Pixhawk-class flight controllers
 
-这是基于官方 [ArduPilot](https://github.com/ArduPilot/ardupilot) 稳定标签 `Sub-4.7.0` 整理的 ArduSub 专用仓库。
+这是从官方 [ArduPilot](https://github.com/ArduPilot/ardupilot) 稳定标签 `Sub-4.7.0` 迁移出的 ArduSub 固件仓库。
 
-本仓库保留完整的 `ArduSub/`、`libraries/` 和 `modules/`，不修改飞控逻辑，不关闭 ArduSub 的编译功能。其他车辆源码、通用 CI、Docker、Vagrant、文档站点及与 ArduSub 构建无关的外部工具已移除，以便集中学习和开发水下机器人控制系统。
+本仓库保留完整的 `ArduSub/`、`libraries/` 和 `modules/`，不修改官方 4.7.0 飞控逻辑，不关闭 ArduSub 的编译功能。其他车辆源码、通用 CI、Docker、Vagrant、文档站点及与 ArduSub 固件构建无关的外部工具已移除。
+
+## 维护边界
+
+- 唯一车辆产品是 ArduSub，不引入 ArduPlane、ArduCopter、Rover 等其他车辆主线。
+- 目标硬件限定为 Pixhawk4、Pixhawk1 及同类 ChibiOS 实时飞控板；新板卡支持通过 HAL 和 `hwdef.dat` 完成。
+- SITL 仅用于 ArduSub 固件回归验证，不扩展为通用机器人仿真平台。
+- 固件必需的 MAVLink 协议、地面站通信和生成链继续保留。
+- 伴随计算机应用、中间件工作区、通用机器人集成和非 ArduSub 控制工具不属于本仓库维护范围。
+- 不自动跟随上游 `master`；任何升级都必须在独立分支审计 ArduSub 稳定版差异，并完成 SITL、目标板构建和回退验证。
 
 ## 获取源码
 
@@ -69,6 +78,6 @@ build/sitl/bin/ardusub
 - `ArduSub/`：完整保留官方车辆层源码。
 - `libraries/`：完整保留官方公共库，避免破坏隐式依赖。
 - `modules/`：完整保留官方 Git 子模块，不在本仓库内修改子模块源码。
-- `Tools/`：保留 Waf、固件生成、Bootloader、SITL、环境安装、调试、ROS 2 和 Simulink 相关工具。
+- `Tools/`：只保留 ArduSub 所需的 Waf、固件生成、Bootloader、SITL、环境安装和调试工具。
 
-这是科研与二次开发用的定向 Fork。同步官方更新时，应重新执行 Pixhawk4 和 SITL 的完整编译验证。
+这是面向 Pixhawk 类飞控板的定向固件 Fork。同步官方 ArduSub 稳定版更新时，必须重新执行 Pixhawk4 和 SITL 的完整编译验证。

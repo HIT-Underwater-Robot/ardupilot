@@ -57,7 +57,6 @@ bool AP_DDS_External_Odom::is_odometry_frame(const geometry_msgs_msg_TransformSt
 void AP_DDS_External_Odom::convert_transform(const geometry_msgs_msg_Transform& ros_transform, Vector3f& translation, Quaternion& rotation)
 {
     // convert from x-forward, y-left, z-up to NED
-    // https://github.com/mavlink/mavros/issues/49#issuecomment-51614130
     translation = {
         static_cast<float>(ros_transform.translation.x),
         static_cast<float>(-ros_transform.translation.y),

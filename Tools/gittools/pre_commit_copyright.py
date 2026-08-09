@@ -43,7 +43,7 @@ Place an entry into the local `.pre-commit-config.yaml` file to run this job.
         language: python
         files: |
             (?x)^(
-              Tools/ros2/.*\.py
+              Tools/.*\.py
             )$
         args: [
             --ignore=excluded_file.py,

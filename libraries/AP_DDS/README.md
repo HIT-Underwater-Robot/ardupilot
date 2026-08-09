@@ -334,10 +334,6 @@ cp /opt/ros/humble/share/builtin_interfaces/msg/Time.idl libraries/AP_DDS/Idl/bu
 # Build the code again with the `--enable-DDS` flag as described above
 ```
 
-If the message is custom for ardupilot, first create the ROS message in `Tools/ros2/ardupilot_msgs/msg/GlobalPosition.msg`.
-Then, build ardupilot_msgs with colcon.
-Finally, copy the IDL folder from the install directory into the source tree.
-
 ### Rules for adding topics and services
 
 Topics and services available from `AP_DDS` are automatically mapped into ROS 2

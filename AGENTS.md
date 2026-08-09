@@ -4,6 +4,17 @@ This document provides guidelines for AI assistants (ChatGPT, Claude, Copilot, G
 
 ArduPilot is safety-critical autopilot software controlling real vehicles. Every change must be correct, tested, and reviewable by human maintainers.
 
+## Focused repository boundary
+
+This fork is pinned to the official `Sub-4.7.0` baseline and has one product scope:
+ArduSub firmware for Pixhawk-class ChibiOS flight controllers.
+
+- Do not add other ArduPilot vehicles as product targets.
+- Keep MAVLink components required by ArduSub firmware and ground-station communication.
+- Do not add companion-computer applications, ROS workspaces, or unrelated robotics tooling.
+- Use SITL only to validate ArduSub firmware behavior.
+- Treat upstream shared libraries as retained dependencies, not as an expanded support promise.
+
 ---
 
 ## Table of Contents
@@ -112,7 +123,7 @@ ArduPilot enforces style via [astyle](Tools/CodeStyle/astylerc). The key rules:
 - Files opting into linting contain the marker comment `AP_FLAKE8_CLEAN`.
 - New files should always add this marker.
 - Follow [flake8 config](.flake8): max line length 127.
-- `black` formatting (line-length=120) applies only to `libraries/AP_DDS` and `Tools/ros2`.
+- `black` formatting (line-length=120) applies only to `libraries/AP_DDS` in this focused fork.
 - Use `isort` with `profile="black"` for import ordering.
 
 ---
