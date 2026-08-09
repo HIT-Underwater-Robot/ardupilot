@@ -81,3 +81,7 @@ build/sitl/bin/ardusub
 - `Tools/`：只保留 ArduSub 所需的 Waf、固件生成、Bootloader、SITL、环境安装和调试工具。
 
 这是面向 Pixhawk 类飞控板的定向固件 Fork。同步官方 ArduSub 稳定版更新时，必须重新执行 Pixhawk4 和 SITL 的完整编译验证。
+
+## 二次开发资料
+
+仓库内的 [`Sub_learning/`](Sub_learning/README.md) 汇总了本基线的源码阅读路径、飞行模式与控制链、推进器状态机、轨迹整形、构建测试、变更流程和 Pixhawk 类板卡移植方法。
