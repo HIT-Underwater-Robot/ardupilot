@@ -10,7 +10,7 @@
 | 飞控板 | `Pixhawk1`（内部复用 `fmuv3` hwdef） | Pixhawk4、Cube、SITL、Linux 及其他板卡 |
 | 控制主线 | 驾驶输入、AHRS/EKF3、姿态/角速度控制、spool 状态机、`AP_Motors6DOF`、SRV/HAL/IOMCU | 位置/航点/任务/轨迹控制、自动导航和避障 |
 | 基本外设 | Pixhawk1 板载双 IMU、HMC5843/LSM303D、MS5611、模拟电池、u-blox GPS、IOMCU RC/PWM、漏水检测、MAVLink | CAN、DShot/ESC telemetry、Lua、OSD、camera/mount、rangefinder、terrain、optical flow、external AHRS 等 |
-| 工程资料 | `Sub_learning/` | 通用车辆、通用 SITL/autotest 平台和其他产品能力 |
+| 工程资料 | `Sub_learning/` 架构说明和默认不编译的动手实验 | 通用车辆、通用 SITL/autotest 平台和其他产品能力 |
 
 根目录 Waf 只递归 ArduSub，`./waf list_boards` 只应列出 `Pixhawk1`。`modules/` 仍是上游记录的 Git submodule，不在本分支内修改。
 
@@ -44,4 +44,4 @@ build_minimal_pixhawk1/Pixhawk1/bin/ardusub_with_bl.hex
 - 本分支：极简阅读/教学实验，仅用于理解最短控制链。
 - 新模式、新传感器、新参数或新控制器实验应从合适基线建立单独分支，取得构建、台架与回退证据后再讨论进入 `master`。
 
-学习入口见 [`Sub_learning/README.md`](Sub_learning/README.md)。
+学习入口见 [`Sub_learning/README.md`](Sub_learning/README.md)。其中 `Sub_learning/labs/` 的参考 `.cpp/.h` 不在默认编译链中；学习者必须在自己的实验分支手工接入。

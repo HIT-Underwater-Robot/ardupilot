@@ -16,7 +16,7 @@ AP_Motors spool 状态机与 AP_Motors6DOF
 SRV_Channels → ChibiOS HAL → IOMCU/PWM
 ```
 
-本分支删除了位置保持、任务、航点、轨迹、测距、地形、视觉、CAN、Lua 和绝大多数非 Pixhawk1 驱动。因此，文档中讨论的新功能案例是**设计练习**，不是当前极简树中可直接复制粘贴的产品实现。
+本分支删除了位置保持、任务、航点、轨迹、测距、地形、视觉、CAN、Lua 和绝大多数非 Pixhawk1 驱动。`cases/` 是需求设计练习；`labs/` 另行提供可手工接入的教学参考源码。两者都不属于默认固件，更不是可直接发布的产品实现。
 
 ## 推荐学习顺序
 
@@ -27,13 +27,15 @@ SRV_Channels → ChibiOS HAL → IOMCU/PWM
 | 3 | `ArduSub/mode_stabilize.cpp`、`Attitude.cpp` | 能区分姿态目标、角速度目标、陀螺反馈和控制输出 |
 | 4 | `libraries/AC_AttitudeControl`、`AC_PID` | 能指出外环和 rate PID 的职责，不把 PID 输出直接等同于 PWM |
 | 5 | `libraries/AP_Motors`、`SRV_Channel`、`AP_HAL_ChibiOS` | 能解释 spool、6DOF 系数、servo function、IOMCU/PWM 的边界 |
-| 6 | [六类二次开发案例目录](10_case_catalog.md) | 能为新需求选择模式层、驱动层、控制层、估计层或 hwdef 层 |
+| 6 | [动手实验总入口](labs/README.md) | 能手工接入 UART、Waf 库、新模式和安全超时，并完成 Pixhawk1 构建 |
+| 7 | [六类二次开发案例目录](10_case_catalog.md) | 能为新需求选择模式层、驱动层、控制层、估计层或 hwdef 层 |
 
 ## 文档目录
 
 | 文档 | 用途 |
 |---|---|
 | [01_source_reading_map.md](01_source_reading_map.md) | 与当前极简源码一致的架构、文件职责、库白名单和验证边界 |
+| [labs/README.md](labs/README.md) | 默认不参与编译的四级实操课：UART Ping、串口帧库、Precision Manual、串口模式 |
 | [10_case_catalog.md](10_case_catalog.md) | 新模式、传感器、参数、控制算法、估计算法、新板卡的立项表 |
 | [cases/01_new_flight_mode](cases/01_new_flight_mode/README.md) | 新飞行模式设计练习 |
 | [cases/02_new_sensor_driver](cases/02_new_sensor_driver/README.md) | 新传感器 frontend/backend 设计练习 |
@@ -43,7 +45,7 @@ SRV_Channels → ChibiOS HAL → IOMCU/PWM
 | [cases/06_new_board](cases/06_new_board/README.md) | STM32/ChibiOS hwdef 与拆桨 bring-up 练习 |
 | [11_new_thruster_frame_development.md](11_new_thruster_frame_development.md) | 新推进器构型与 6DOF 系数的完整审计方法 |
 
-旧的 Precision Manual、虚拟 DVL、串口转发和 SMC“可运行 demo”文档已删除，因为相应实验代码不在当前极简源码中。保留不存在的文件地图会误导初学者，也会把“构想”错误包装成“已验证实现”。
+旧的虚拟 DVL、串口转发和 SMC“直接可用 demo”已经删除。新的 `labs/` 只保留与当前极简 Pixhawk1 源码逐项核对过的教学参考，并要求学习者自己复制、注册和验证；默认构建仍然只有 Manual/Stabilize。
 
 ## 实验纪律
 
@@ -52,6 +54,7 @@ SRV_Channels → ChibiOS HAL → IOMCU/PWM
 3. 先写输入、坐标、单位、健康、arming/failsafe、输出和回退，再写代码。
 4. 构建成功只证明编译链接；控制改动还需要日志、拆桨台架和受控实机验证。
 5. 不修改 `modules/`，不重排已有参数索引，不绕过 feature guard、safety、interlock 或 spool 状态机。
+6. `Sub_learning/labs/**/files` 中出现 `.cpp/.h` 不代表它已进入固件；以目标路径、Waf 白名单、对象成员、初始化和 scheduler/mode 注册为证据。
 
 ## 当前验证基线
 
